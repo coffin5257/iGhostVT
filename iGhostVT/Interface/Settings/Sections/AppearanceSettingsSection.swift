@@ -5,9 +5,9 @@
 
 import SwiftUI
 
-/// The interface's accent and whether it follows the system's light or
-/// dark setting, then the two theme slots, light and dark; each
-/// slot opens the catalog list.
+/// Whether the interface follows the system's light or dark setting, then
+/// the two theme slots, light and dark; each slot opens the catalog list.
+/// The accent is the theme's (`InterfaceAccent`).
 struct AppearanceSettingsSection: View {
     @ObservedObject private var theme = AppTheme.shared
     @AppStorage(AppearancePreference.key) private var appearance = AppearancePreference.system.rawValue
@@ -18,13 +18,6 @@ struct AppearanceSettingsSection: View {
 
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: DS.Padding.s) {
-                Text("Accent Color")
-                    .padding(.horizontal, DS.Padding.l)
-                AccentColorPicker()
-            }
-            .padding(.vertical, DS.Padding.xs)
-            .listRowInsets(EdgeInsets(top: DS.Padding.m, leading: 0, bottom: DS.Padding.m, trailing: 0))
             HStack {
                 Text("Appearance")
                     .layoutPriority(1)

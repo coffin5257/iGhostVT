@@ -8,33 +8,36 @@ import Foundation
 #if targetEnvironment(macCatalyst)
     import ObjectiveC
 
-    /// The accent preference's AppKit half. What AppKit draws itself — a
-    /// menu's highlighted item, focus rings — never asks UIKit for a tint;
-    /// it asks `+[NSColor controlAccentColor]`, which under Multicolor
-    /// answers the app's own accent (`NSAccentColorName`). `install()` puts a
-    /// wrapper on that class method that answers the chosen colour instead,
-    /// as AppKit's own dynamic system colour, so it still follows light and
-    /// dark; with Multicolor it calls straight through.
+    /// The theme accent's AppKit half (`InterfaceAccent`). What AppKit draws
+    /// itself — a menu's highlighted item, focus rings — never asks UIKit
+    /// for a tint; it asks `+[NSColor controlAccentColor]`, which answers
+    /// the app's own accent (`NSAccentColorName`). `install()` puts a
+    /// wrapper on that class method that answers the theme's accent
+    /// instead, as a dynamic `NSColor` that resolves light or dark against
+    /// the appearance it is drawn in; until the first `update` it calls
+    /// straight through.
     ///
     /// Not everything AppKit tints asks that method: the settings window's
     /// selected toolbar pane reads the application's own accent
     /// (`-[NSApplication _effectiveAccentColor]`, which is `_accentColor`
     /// when one is set and the asset catalog's otherwise), so `update` sets
-    /// that too (`_setAccentColor:`, nil for the app's own).
+    /// that too (`_setAccentColor:`).
     ///
     /// AppKit is reached through the ObjC runtime, as in
     /// `CatalystWindowChrome`: a class or selector that no longer exists
     /// leaves AppKit's own accent in place.
     enum CatalystAccentColor {
-        /// The AppKit colour selector for the current choice; nil is no
-        /// override. AppKit asks from whatever thread it draws on.
-        private nonisolated(unsafe) static var override: Selector?
+        /// The `NSColor` answered for the accent; nil is no override.
+        /// AppKit asks from whatever thread it draws on.
+        private nonisolated(unsafe) static var override: AnyObject?
         private static let lock = NSLock()
+        /// The accent `override` was made from. Main thread only.
+        private nonisolated(unsafe) static var overridePair: InterfaceAccent.Pair?
         /// What `NSApp` was last given; nil until the app is up.
-        /// Read and written on the main thread only, where `update` is called
-        /// once the app is up.
-        private nonisolated(unsafe) static var applicationAccent: Selector??
+        /// Main thread only, where `update` is called once the app is up.
+        private nonisolated(unsafe) static var applicationAccent: InterfaceAccent.Pair?
 
+        @MainActor
         static func install() {
             guard let colorClass = NSClassFromString("NSColor"),
                   let metaclass = object_getClass(colorClass)
@@ -47,12 +50,7 @@ import Foundation
                 lock.lock()
                 let chosen = override
                 lock.unlock()
-                if let chosen,
-                   let color = (colorClass as AnyObject).perform(chosen)?.takeUnretainedValue()
-                {
-                    return color
-                }
-                return unsafeBitCast(original, to: Original.self)(target, selector)
+                return chosen ?? unsafeBitCast(original, to: Original.self)(target, selector)
             }
             class_replaceMethod(
                 metaclass,
@@ -60,7 +58,7 @@ import Foundation
                 imp_implementationWithBlock(block),
                 method_getTypeEncoding(method),
             )
-            update(AccentColorPreference.current, includingApplication: false)
+            update(InterfaceAccent.current, includingApplication: false)
         }
 
         /// Swaps the colour AppKit answers and has every AppKit view redraw
@@ -71,16 +69,19 @@ import Foundation
         /// The application's own accent is set only once the app is up
         /// (`install` runs before `UIApplicationMain`, and asking for
         /// `NSApp` there would make one too early), so the first hosting
-        /// root to appear is what applies a choice made in an earlier run.
-        static func update(_ preference: AccentColorPreference, includingApplication: Bool = true) {
-            let chosen = preference.appKitSelector.map { sel_registerName($0) }
-            lock.lock()
-            let changed = chosen != override
-            override = chosen
-            lock.unlock()
-            if includingApplication, applicationAccent != .some(chosen) {
-                applicationAccent = .some(chosen)
-                setApplicationAccent(chosen)
+        /// root to appear is what applies it.
+        @MainActor
+        static func update(_ pair: InterfaceAccent.Pair, includingApplication: Bool = true) {
+            let changed = pair != overridePair
+            if changed, let color = makeColor(pair) {
+                overridePair = pair
+                lock.lock()
+                override = color
+                lock.unlock()
+            }
+            if includingApplication, applicationAccent != pair {
+                applicationAccent = pair
+                setApplicationAccent(currentOverride)
             }
             guard changed else { return }
             NotificationCenter.default.post(
@@ -88,38 +89,54 @@ import Foundation
                 object: nil,
             )
         }
+
+        private static var currentOverride: AnyObject? {
+            lock.lock()
+            defer { lock.unlock() }
+            return override
+        }
     }
 
     fileprivate extension CatalystAccentColor {
-        /// `NSApp._setAccentColor:` with the chosen AppKit colour, or nil
-        /// for the app's own; a selector that is gone is left alone.
-        static func setApplicationAccent(_ chosen: Selector?) {
+        /// `+[NSColor colorWithName:dynamicProvider:]` over the two sRGB
+        /// colours, picking by `-[NSAppearance
+        /// bestMatchFromAppearancesWithNames:]`; nil if either is gone.
+        static func makeColor(_ pair: InterfaceAccent.Pair) -> AnyObject? {
+            guard let colorClass = NSClassFromString("NSColor") as? NSObject.Type else { return nil }
+            let srgbSelector = sel_registerName("colorWithSRGBRed:green:blue:alpha:")
+            let dynamicSelector = sel_registerName("colorWithName:dynamicProvider:")
+            guard let srgbMethod = class_getClassMethod(colorClass, srgbSelector),
+                  let dynamicMethod = class_getClassMethod(colorClass, dynamicSelector)
+            else { return nil }
+            typealias SRGB = @convention(c) (AnyObject, Selector, CGFloat, CGFloat, CGFloat, CGFloat) -> AnyObject
+            typealias Provider = @convention(block) (AnyObject) -> AnyObject
+            typealias Dynamic = @convention(c) (AnyObject, Selector, AnyObject?, Provider) -> AnyObject
+            let srgb = unsafeBitCast(method_getImplementation(srgbMethod), to: SRGB.self)
+            func color(_ rgb: InterfaceAccent.RGB) -> AnyObject {
+                srgb(colorClass, srgbSelector, rgb.red, rgb.green, rgb.blue, 1)
+            }
+            let light = color(pair.light)
+            let dark = color(pair.dark)
+            let matchSelector = sel_registerName("bestMatchFromAppearancesWithNames:")
+            let names = ["NSAppearanceNameAqua", "NSAppearanceNameDarkAqua"] as NSArray
+            let provider: Provider = { appearance in
+                guard appearance.responds(to: matchSelector),
+                      let match = appearance.perform(matchSelector, with: names)?.takeUnretainedValue() as? String
+                else { return light }
+                return match == "NSAppearanceNameDarkAqua" ? dark : light
+            }
+            let dynamic = unsafeBitCast(method_getImplementation(dynamicMethod), to: Dynamic.self)
+            return dynamic(colorClass, dynamicSelector, nil, provider)
+        }
+
+        /// `NSApp._setAccentColor:`; a selector that is gone is left alone.
+        static func setApplicationAccent(_ color: AnyObject?) {
             guard let applicationClass = NSClassFromString("NSApplication") as? NSObject.Type,
-                  let colorClass = NSClassFromString("NSColor") as? NSObject.Type,
                   let application = applicationClass.value(forKey: "sharedApplication") as? NSObject
             else { return }
             let setter = sel_registerName("_setAccentColor:")
             guard application.responds(to: setter) else { return }
-            let color = chosen.flatMap { colorClass.perform($0)?.takeUnretainedValue() }
             application.perform(setter, with: color)
-        }
-    }
-
-    private extension AccentColorPreference {
-        /// The `NSColor` class method for the choice: AppKit's own system
-        /// colours, the ones System Settings' accents are.
-        var appKitSelector: String? {
-            switch self {
-            case .appDefault: nil
-            case .blue: "systemBlueColor"
-            case .purple: "systemPurpleColor"
-            case .pink: "systemPinkColor"
-            case .red: "systemRedColor"
-            case .orange: "systemOrangeColor"
-            case .yellow: "systemYellowColor"
-            case .green: "systemGreenColor"
-            case .graphite: "systemGrayColor"
-            }
         }
     }
 #endif

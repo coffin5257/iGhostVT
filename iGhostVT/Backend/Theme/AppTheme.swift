@@ -50,11 +50,11 @@ final class AppTheme: ObservableObject {
         )
     }
 
-    private var lightDefinition: GhosttyThemeDefinition? {
+    var lightDefinition: GhosttyThemeDefinition? {
         GhosttyThemeCatalog.theme(named: selection.lightName ?? Self.defaultLightName)
     }
 
-    private var darkDefinition: GhosttyThemeDefinition? {
+    var darkDefinition: GhosttyThemeDefinition? {
         GhosttyThemeCatalog.theme(named: selection.darkName ?? Self.defaultDarkName)
     }
 
