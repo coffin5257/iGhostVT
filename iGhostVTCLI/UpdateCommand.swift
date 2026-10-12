@@ -84,8 +84,8 @@ enum UpdateCommand {
         case .upToDate: return "iGhostVT \(installed) is the latest version."
         case .available: return "iGhostVT \(latest) is available (installed: \(installed)). Run `ighostvt-cli update` to install it."
         case .downloading:
-            let progress = xpc_dictionary_get_double(reply, iGhostVTWireKey.updateProgress)
-            return "Downloading iGhostVT \(latest)… \(Int((progress * 100).rounded(.down)))%"
+            let permille = min(xpc_dictionary_get_uint64(reply, iGhostVTWireKey.updateProgress), 1000)
+            return "Downloading iGhostVT \(latest)… \(permille / 10)%"
         case .verifying: return "Checking the signature of iGhostVT \(latest)…"
         case .installing: return "Installing iGhostVT \(latest)…"
         case .installed: return "iGhostVT \(latest) is installed. iGhostVT relaunches and its terminal helper restarts, which ends every session on this Mac."

@@ -105,7 +105,7 @@ enum HostUpdateClient {
             installedVersion: string(iGhostVTWireKey.appVersion, in: reply) ?? "",
             latestVersion: string(iGhostVTWireKey.updateVersion, in: reply),
             progress: xpc_dictionary_get_value(reply, iGhostVTWireKey.updateProgress)
-                .map { xpc_double_get_value($0) },
+                .map { Double(min(xpc_uint64_get_value($0), 1000)) / 1000 },
             message: string(iGhostVTWireKey.errorMessage, in: reply),
         )
     }

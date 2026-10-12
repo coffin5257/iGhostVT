@@ -469,7 +469,8 @@ final class PeerSession {
             xpc_dictionary_set_string(reply, iGhostVTWireKey.updateVersion, latest)
         }
         if let progress = snapshot.progress {
-            xpc_dictionary_set_double(reply, iGhostVTWireKey.updateProgress, progress)
+            let permille = UInt64((min(max(progress, 0), 1) * 1000).rounded(.down))
+            xpc_dictionary_set_uint64(reply, iGhostVTWireKey.updateProgress, permille)
         }
         if let message = snapshot.message {
             xpc_dictionary_set_string(reply, iGhostVTWireKey.errorMessage, message)

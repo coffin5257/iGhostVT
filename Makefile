@@ -218,6 +218,18 @@ check:
 			exit 65; \
 		fi; \
 	fi
+	@# IOCodec carries uint64, int64, bool, string, data, array and
+	@# dictionary, and nothing else: a message holding any other type is
+	@# dropped whole between io and the proxy (and on a remote link), so
+	@# 1.6.0–1.6.2 answered nothing while an update downloaded.
+	@hits="$$(grep -rnE 'xpc_(dictionary|array)_set_(double|date|uuid|fd)|xpc_(double|date|uuid|fd|shmem)_create' --include='*.swift' \
+		"$(ROOT_DIR)/iGhostVT" "$(ROOT_DIR)/iGhostVTDaemon" "$(ROOT_DIR)/iGhostVTDaemonShared" \
+		"$(ROOT_DIR)/iGhostVTIO" "$(ROOT_DIR)/iGhostVTCLI" "$(ROOT_DIR)/Shared" || true)"; \
+	if [[ -n "$$hits" ]]; then \
+		echo "error: an XPC type IOCodec does not carry is put into a message below — the frame is dropped whole between io and the proxy:" >&2; \
+		echo "$$hits" >&2; \
+		exit 65; \
+	fi
 	@# UIKit reads an accessibilityLabel only off a view that is itself an
 	@# accessibility element, so a container that sets one without
 	@# isAccessibilityElement is walked past and its sentence never spoken.

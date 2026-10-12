@@ -483,10 +483,14 @@ enum iGhostVTWireKey {
     static let updateInstall = "updinstall"
     static let updateCancel = "updcancel"
     /// On a `hostUpdate` reply: `HostUpdateState`, the newest version the
-    /// last check found, and how far a download has come (0…1).
+    /// last check found, and how far a download has come, in thousandths
+    /// (a `uint64`, 0…1000). Not a double: `IOCodec` carries none, and a
+    /// reply holding one was dropped whole between io and the proxy, so
+    /// 1.6.0–1.6.2 answered nothing while a download ran. The key is new
+    /// with the type — those clients read `updprog` as a double.
     static let updateState = "updstate"
     static let updateVersion = "updver"
-    static let updateProgress = "updprog"
+    static let updateProgress = "updpermille"
 }
 
 /// Where the Mac's own update stands, as `hostUpdate` reports it.
