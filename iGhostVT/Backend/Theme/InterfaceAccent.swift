@@ -152,11 +152,17 @@ enum InterfaceAccent {
     private static var cached: (selection: AppTheme.Selection, custom: String, pair: Pair)?
 
     /// The colour, following light and dark as a system colour does.
+    ///
+    /// The provider is `@Sendable` so it is nonisolated: written inside
+    /// this `@MainActor` getter it inherited the main actor, and Swift 6
+    /// checks that on entry — but SwiftUI resolves colours on its async
+    /// renderer thread (iOS 27), and the check trapped there
+    /// (`_dispatch_assert_queue_fail`, GhostRemote 1.6.4).
     @MainActor
     static var uiColor: UIColor {
         let light = current.light.uiColor
         let dark = current.dark.uiColor
-        return UIColor { traits in
+        return UIColor { @Sendable traits in
             traits.userInterfaceStyle == .dark ? dark : light
         }
     }
