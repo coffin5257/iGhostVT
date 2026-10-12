@@ -38,6 +38,7 @@ final class RemoteAccessModel: ObservableObject {
     }
 
     func refresh() async {
+        guard !AppEdition.isRemoteOnly else { return }
         await apply(RemoteAccessControl.status())
     }
 

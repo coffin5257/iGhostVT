@@ -21,6 +21,8 @@ import SwiftUI
         @State private var selectedHostID: String?
         @State private var isShowingPairingCode = false
         @State private var pairingHost: DiscoveredRemoteHost?
+        @State private var renamingHostID: String?
+        @State private var isRefreshing = false
         @State private var window: UIWindow?
         @State private var isShowingAuthorized = false
         @State private var isShowingAccessible = false
@@ -134,7 +136,7 @@ import SwiftUI
         // MARK: - This Mac as a host
 
         /// The devices that may open terminals here: + under the table pairs
-        /// one more, the selected row's trash takes one away.
+        /// one more, a row's trash takes one away.
         private var allowedDevices: some View {
             MacTableFrame {
                 VStack(spacing: 0) {
@@ -149,7 +151,7 @@ import SwiftUI
                                     isSelected: device.id == selectedAllowedID,
                                     select: { selectedAllowedID = device.id },
                                 ) {
-                                    MacRowIconButton(symbol: "trash", label: "Remove") {
+                                    MacRowIconButton(symbol: "trash", label: "Remove", isSelected: device.id == selectedAllowedID) {
                                         model.revoke(device)
                                         selectedAllowedID = nil
                                     }
@@ -186,16 +188,43 @@ import SwiftUI
                             RemotePairingCodeView(model: model, isPopover: true)
                                 .keepsPopover()
                         }
+                        Button(action: refresh) {
+                            Group {
+                                if isRefreshing {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                } else {
+                                    Image(systemName: "arrow.clockwise")
+                                }
+                            }
+                            .frame(width: 22, height: 18)
+                            .contentShape(Rectangle())
+                        }
+                        .accessibilityLabel("Refresh")
+                        .disabled(isRefreshing)
                     }
                 }
+            }
+        }
+
+        /// Asks the helper for its devices again, and looks for the other
+        /// devices again while at it.
+        private func refresh() {
+            isRefreshing = true
+            Task {
+                async let status: Void = model.refresh()
+                await directory.refresh()
+                await status
+                isRefreshing = false
             }
         }
 
         // MARK: - The other devices
 
         /// The devices this Mac is paired with, then the ones nearby it
-        /// could pair with. The selected row carries its one action — trash
-        /// to forget a paired device, Pair for one nearby.
+        /// could pair with. Every row carries its actions, selected or not, so
+        /// the trailing details line up — rename, update and forget for a
+        /// paired device, Pair for one nearby.
         private var yourDevices: some View {
             let entries = accessibleEntries
             return MacTableFrame {
@@ -264,34 +293,53 @@ import SwiftUI
         }
 
         private func accessibleRow(_ device: AccessibleDevice) -> some View {
-            MacDeviceRow(
+            let isSelected = device.id == selectedHostID
+            return MacDeviceRow(
                 name: device.name,
                 address: device.address,
                 detail: device.detail,
                 index: device.index,
-                isSelected: device.id == selectedHostID,
+                isSelected: isSelected,
                 select: { selectedHostID = device.id },
             ) {
-                switch device.action {
-                case let .forget(host):
-                    HStack(spacing: DS.Padding.xs) {
-                        MacRowIconButton(symbol: "arrow.down.circle", label: "Check for Update") {
-                            HostUpdateFlow.run(endpoint: .remote(hostID: host.id), in: window)
+                Group {
+                    switch device.action {
+                    case let .forget(host):
+                        HStack(spacing: MacDeviceRow<EmptyView>.spacing) {
+                            MacRowIconButton(symbol: "pencil", label: "Rename", isSelected: isSelected) {
+                                renamingHostID = host.id
+                            }
+                            .popover(
+                                isPresented: Binding(
+                                    get: { renamingHostID == host.id },
+                                    set: { if !$0 { renamingHostID = nil } },
+                                ),
+                                arrowEdge: .bottom,
+                            ) {
+                                MacRenameHostView(host: host) { renamingHostID = nil }
+                                    .keepsPopover()
+                            }
+                            MacRowIconButton(symbol: "icloud.and.arrow.up", label: "Check for Update", isSelected: isSelected) {
+                                HostUpdateFlow.run(endpoint: .remote(hostID: host.id), in: window)
+                            }
+                            MacRowIconButton(symbol: "trash", label: "Forget", isSelected: isSelected) {
+                                confirmForget(host)
+                            }
                         }
-                        MacRowIconButton(symbol: "trash", label: "Forget") {
-                            confirmForget(host)
+                    case let .pair(host):
+                        Button {
+                            pairingHost = host
+                        } label: {
+                            Text("Pair")
+                                .font(DS.Font.labelEmphasis)
+                                .foregroundColor(isSelected ? .white : .accentColor)
                         }
+                        .buttonStyle(.borderless)
                     }
-                case let .pair(host):
-                    Button {
-                        pairingHost = host
-                    } label: {
-                        Text("Pair")
-                            .font(DS.Font.labelEmphasis)
-                            .foregroundColor(.white)
-                    }
-                    .buttonStyle(.borderless)
                 }
+                // As wide as a paired row's three buttons, so a nearby
+                // device's detail lines up with the paired ones above it.
+                .frame(minWidth: MacRowIconButton.width * 3 + MacDeviceRow<EmptyView>.spacing * 2, alignment: .trailing)
             }
             // On the row rather than its Pair button, which pairing takes
             // away: the popover stays to say how it went, still pointing at
@@ -356,8 +404,9 @@ import SwiftUI
     }
 
     /// One row of a device table: the name with its address dim after it,
-    /// a dim trailing detail, striped, the selection in the accent with the
-    /// row's action at its trailing end.
+    /// a dim trailing detail, then the row's actions — there on every row,
+    /// selected or not, so the details line up — striped, the selection in
+    /// the accent.
     private struct MacDeviceRow<Accessory: View>: View {
         let name: String
         let address: String?
@@ -367,8 +416,12 @@ import SwiftUI
         let select: () -> Void
         @ViewBuilder let accessory: () -> Accessory
 
+        /// Between the detail and the first button, and between buttons:
+        /// one gap, so the trailing end reads as one evenly spaced run.
+        static var spacing: CGFloat { DS.Padding.s }
+
         var body: some View {
-            HStack(spacing: DS.Padding.m) {
+            HStack(spacing: Self.spacing) {
                 Group {
                     if let address {
                         Text(verbatim: name)
@@ -383,9 +436,7 @@ import SwiftUI
                     .font(DS.Font.detail)
                     .foregroundColor(isSelected ? .white.opacity(0.75) : .secondary)
                     .lineLimit(1)
-                if isSelected {
-                    accessory()
-                }
+                accessory()
             }
             .foregroundColor(isSelected ? .white : .primary)
             .padding(.horizontal, DS.Padding.m)
@@ -400,21 +451,66 @@ import SwiftUI
         }
     }
 
-    /// A glyph button on a selected row, white on the accent.
+    /// A glyph button on a row: white on the selection's accent, dim
+    /// elsewhere.
     private struct MacRowIconButton: View {
+        static let width: CGFloat = 18
+
         let symbol: String
         let label: LocalizedStringKey
+        let isSelected: Bool
         let action: () -> Void
 
         var body: some View {
             Button(action: action) {
                 Image(systemName: symbol)
-                    .foregroundColor(.white)
-                    .frame(width: 22, height: 22)
+                    .foregroundColor(isSelected ? .white : .secondary)
+                    .frame(width: Self.width, height: 22)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .accessibilityLabel(label)
+        }
+    }
+
+    /// A paired device's name here, edited in a popover off its row's
+    /// pencil: blank goes back to the name the device gives itself.
+    private struct MacRenameHostView: View {
+        let host: PairedRemoteHost
+        let done: () -> Void
+        @State private var nickname: String
+
+        init(host: PairedRemoteHost, done: @escaping () -> Void) {
+            self.host = host
+            self.done = done
+            _nickname = State(initialValue: host.nickname ?? "")
+        }
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: DS.Padding.s) {
+                TextField(host.name, text: $nickname)
+                    .textFieldStyle(.roundedBorder)
+                    .disableAutocorrection(true)
+                    .frame(width: 240)
+                    .onSubmit(done)
+                Text("Leave this empty to use the name set on the device.")
+                    .font(DS.Font.detail)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(width: 240, alignment: .leading)
+                HStack {
+                    Spacer()
+                    Button("Done", action: done)
+                }
+            }
+            .padding(DS.Padding.m)
+            // However it closes — Done, Return, or a click outside.
+            .onDisappear(perform: save)
+        }
+
+        private func save() {
+            guard nickname != (host.nickname ?? "") else { return }
+            PairedRemoteHostStore.setNickname(nickname, forHostID: host.id)
         }
     }
 

@@ -270,6 +270,16 @@ final class RemoteHostDirectory: ObservableObject {
         self.browser = browser
     }
 
+    /// Looks again, on the user's asking: a fresh Bonjour browse — the
+    /// old one's list stays up until the new one answers, so nothing
+    /// flickers out — and the relay asked outright.
+    func refresh() async {
+        browser?.cancel()
+        browser = nil
+        start()
+        await refreshRelay(force: true)
+    }
+
     /// At launch: browse only if there is a paired host to look for.
     func startIfPaired() {
         if !paired.isEmpty {
