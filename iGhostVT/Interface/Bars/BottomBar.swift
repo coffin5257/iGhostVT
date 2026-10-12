@@ -87,6 +87,12 @@ struct BottomBar: View {
             Image(systemName: "square.on.square")
                 .font(DS.Font.control)
                 .frame(width: 44, height: 44)
+                .contentShape(Circle())
+                .barGlass(in: Circle())
+                // Over the glass, not in it: as content of the glass the
+                // badge was cut to its circle whenever the glass changed
+                // shape — a press, or the capsule beside it melting into
+                // it on iOS 26.
                 .overlay(alignment: .topTrailing) {
                     if tabManager.tabs.count > 1 {
                         Text("\(tabManager.tabs.count)")
@@ -100,8 +106,6 @@ struct BottomBar: View {
                             .accessibilityHidden(true)
                     }
                 }
-                .contentShape(Circle())
-                .barGlass(in: Circle())
         }
         .accessibilityLabel("Show All Tabs")
         .accessibilityValue(tabCountValue)
