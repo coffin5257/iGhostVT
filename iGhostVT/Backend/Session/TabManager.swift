@@ -207,7 +207,7 @@ final class TabManager: ObservableObject {
         }
         let tab = makeTab(resume: sessionID, remoteHostID: hostID)
         tab.store.takesOverOnFirstConnect = true
-        return adopt(tab, afterActiveTab: true)
+        return adopt(tab)
     }
 
     /// A terminal a paired device opened on this one (`HostSessionWatcher`):
@@ -372,10 +372,12 @@ final class TabManager: ObservableObject {
 
     /// Puts a freshly made tab in front: placed, activated, and — when the
     /// scene is already up — told so, since a tab created after
-    /// `noteSceneActive()` gets no replay of it. A tab the user opens goes
-    /// right after the one they were in, as a browser's does, so it lands
-    /// beside the work it came from instead of past every other tab; one
-    /// that arrives from outside (a Shortcut, a URL, a moved session) is
+    /// `noteSceneActive()` gets no replay of it. A tab that copies the one
+    /// the user was in — ⌘T, or a menu row naming that tab's own directory
+    /// — goes right after it, as a browser's does, so it lands beside the
+    /// work it came from; one opened somewhere else (another directory, the
+    /// home from a tab that is not there, another device's terminal) or
+    /// arriving from outside (a Shortcut, a URL, a moved session) is
     /// appended. The cold-launch resume batch does not go through here: it
     /// appends several at once and notifies every tab, not only the new ones.
     private func adopt(_ tab: TerminalTab, afterActiveTab: Bool = false) -> TerminalTab {
@@ -450,7 +452,8 @@ final class TabManager: ObservableObject {
                 terminalWindow?.interface.showRemoteAccess()
                 return nil
             }
-            return adopt(makeTab(remoteHostID: hostID), afterActiveTab: true)
+            let beside = if case .activeTab = origin { true } else { activeTab?.currentDirectory?.isHome == true }
+            return adopt(makeTab(remoteHostID: hostID), afterActiveTab: beside)
         }
         let tab = switch origin {
         case .activeTab:
@@ -469,7 +472,31 @@ final class TabManager: ObservableObject {
         case let .remote(hostID, directory):
             makeTab(startDirectory: directory?.path, remoteHostID: hostID)
         }
-        return adopt(tab, afterActiveTab: true)
+        return adopt(tab, afterActiveTab: opensBesideActiveTab(origin))
+    }
+
+    /// Whether `origin` is the active tab again — the same device and the
+    /// same directory — so the new tab belongs beside it. A directory the
+    /// active tab has not reported yet matches nothing but ⌘T.
+    private func opensBesideActiveTab(_ origin: Origin) -> Bool {
+        guard let activeTab else { return false }
+        let here = activeTab.currentDirectory
+        switch origin {
+        case .activeTab:
+            return true
+        case .home:
+            return !activeTab.isRemote && here?.isHome == true
+        case let .session(sessionID):
+            return !activeTab.isRemote && sessionID == activeTab.daemonSessionID
+        case let .directory(directory):
+            return !activeTab.isRemote && here?.path == directory.path
+        case let .remote(hostID, directory):
+            guard activeTab.remoteHostID == hostID else { return false }
+            if let directory {
+                return here?.path == directory.path
+            }
+            return here?.isHome == true
+        }
     }
 
     /// Closing the last tab leaves the window empty on purpose: the empty

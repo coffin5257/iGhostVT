@@ -1028,9 +1028,11 @@ there too, given the touch when the finger held still to 0.6 s, and on an
 iPad it opened under a reorder that had not moved yet; it is gone, not
 retimed.
 
-A tab opened from inside the window (⌘T, a `+`, the menus) goes right
-after the active tab, as a browser's does; one that arrives from outside
-— a Shortcut, a URL, a moved session — is appended.
+A tab that copies the active one — ⌘T, or a menu row naming the active
+tab's own device and directory — goes right after it, as a browser's
+does; every other new tab — another directory, another device's
+terminal, a Shortcut, a URL, a moved session — is appended
+(`TabManager.opensBesideActiveTab`).
 
 Every `+` is a `NewTabMenu`: the only decision a new terminal has is where
 its shell starts, so the control opens a menu of directories instead of a
