@@ -219,7 +219,13 @@ files on replacement and destruction; old loose configs in shared tmp are
 left alone.
 
 Settings is a sheet on iPhone and iPad and a window of its own on the
-Mac (`Interface/Settings/Mac/`): a second scene configuration
+Mac. The sheet keeps to what people change: its Terminal section holds the
+text size, New Session at Launch, Keep Sessions Running and Remember
+Directories, Default Shell sits under Advanced, and there is no Interface
+stepper — on iOS the chrome follows Dynamic Type, and a step stored by an
+older build is ignored there (`InterfaceTextSizeModifier`); the Mac keeps
+the stepper because Catalyst ignores Dynamic Type. The Mac's window
+(`Interface/Settings/Mac/`) is a second scene configuration
 (`Settings`, `SettingsSceneDelegate`, chosen by `AppDelegate` when the
 activation carries `wiki.qaq.ighostvt.settings`) with a `.preference`
 toolbar of panes. `CatalystWindowChrome` leaves that window alone, a
@@ -620,7 +626,8 @@ not the tabs' transports, whose `closeSession` is fire-and-forget on a queue
 the exit outruns — and the call polls `listSessions` until the closed
 sessions are gone, because a close reply only says the SIGHUP was sent.
 
-Opening is the other half, beside it in Settings ▸ Sessions: New Session
+Opening is the other half, beside it in Settings ▸ Terminal (General on
+the Mac): New Session
 at Launch (`SessionLaunch`, on by default) decides whether a window with
 nothing to resume starts a shell. It applies to a window the app opens with
 no other terminal window up — a launch, or the first window back after the
@@ -1045,7 +1052,7 @@ remote device's terminal titles change by the second, and every rebuild
 of the open menu closed the New Tab submenu as it opened. Three inline groups, in this order — the home; the directories this
 window's own tabs are in, deduplicated and sorted by path, each naming a
 live session (`inheritDirectoryFrom`) so the daemon re-reads it as the tab
-opens; and the recent list, sorted by the order chosen in Settings. Neither of the last two ever repeats the home (`isHome`) or a
+opens; and the recent list, the most visited first. Neither of the last two ever repeats the home (`isHome`) or a
 directory the other already offers — three rows opening the same shell in
 the same place is two too many. `NewTabDirectoryChoices` works all of that out once, because the
 same answer decides whether there is anything to choose at all: with
@@ -1083,13 +1090,17 @@ sessions the app persists (`UserDefaults`): the daemon keeps no such record,
 and the visit counts and the two spellings exist nowhere else. Every entry
 came from event 102 — never from a shell's own OSC 7, which under roothide
 is not a path anything can `chdir` to. Forty are kept, the least recently
-visited evicted first whatever the sort order; eight reach the menu, minus
+visited evicted first however often it was visited; the menu lists the
+most visited first — counts aged as zoxide does, every one shrunk by a
+tenth whenever they add up past five per slot, so last month's project
+sinks and this week's rises — and eight reach it, minus
 any directory an open tab is already offering and minus the home, which is
-the first row anyway. Settings ▸ Recent Directories is the whole
+the first row anyway. Remember Directories (Settings ▸ Terminal; General
+▸ Frequent Directories on the Mac) is the whole
 of its configuration: Remember Directories hides the group, stops recording
 *and* clears what is stored — a switch that says the app is not keeping this
-has to mean it, and there is no separate Clear — and Sort By is Last Visited
-or Most Visited. A remote
+has to mean it, and there is no separate Clear. There is no sort choice: a
+Last Visited order was offered beside it and taken out. A remote
 tab's directories are kept apart, per host id (`remoteEntries`, twenty per
 device, five in its menu group): a path on another device names nothing
 here. They open with `startDirectory` on *that* device's daemon, which

@@ -18,7 +18,18 @@ private struct InterfaceTextSizeModifier: ViewModifier {
             // The default for text with no role of its own (form rows,
             // toggles), so it scales with the rest.
             .font(DS.Font.body)
-            .environment(\.interfaceTextScale, InterfaceTextSize.scale(step: step))
+            .environment(\.interfaceTextScale, scale)
+    }
+
+    /// The Mac's stepper only: on iOS the system's Dynamic Type is the
+    /// interface's size, and a step stored before the stepper left the
+    /// sheet must not scale it with no way back.
+    private var scale: CGFloat {
+        #if targetEnvironment(macCatalyst)
+            InterfaceTextSize.scale(step: step)
+        #else
+            1
+        #endif
     }
 }
 

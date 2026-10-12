@@ -21,33 +21,14 @@ import SwiftUI
 final class RecentDirectoryStore: ObservableObject {
     static let shared = RecentDirectoryStore()
 
-    /// How the new-tab menu orders the list. The user's choice, in
-    /// Settings ▸ Recent Directories.
-    enum SortOrder: String, CaseIterable, Identifiable {
-        /// Where they were last — the default, since the thing just left
-        /// is usually the thing wanted again.
-        case recent
-        /// Where they go most often, which outlives a single afternoon's
-        /// detour.
-        case frequent
-
-        var id: String {
-            rawValue
-        }
-
-        var title: String {
-            switch self {
-            case .recent: String(localized: "Last Visited")
-            case .frequent: String(localized: "Most Visited")
-            }
-        }
-    }
-
-    /// One remembered directory, with what the two orders sort on.
+    /// One remembered directory, with what the menu sorts on.
     struct Entry: Codable, Hashable, Identifiable {
         var directory: TerminalDirectory
         var lastVisited: Date
-        var visitCount: Int
+        /// Visits, aged: past `agingBudget` in all, every count shrinks
+        /// (see `visit`). A `Double`, which still decodes the whole
+        /// numbers an older build stored.
+        var visitCount: Double
 
         var id: String {
             directory.path
@@ -76,24 +57,28 @@ final class RecentDirectoryStore: ObservableObject {
         }
     }
 
-    @Published var sortOrder: SortOrder {
-        didSet {
-            guard sortOrder != oldValue else { return }
-            defaults.set(sortOrder.rawValue, forKey: Self.sortOrderKey)
-        }
-    }
-
     /// How many directories are kept. Past this the least recently visited
-    /// goes, whichever order the menu is in — a directory nobody has opened
+    /// goes, however often it was visited — a directory nobody has opened
     /// in months is not worth a row however often it was once used.
     private static let limit = 40
+
+    /// How much the counts may add up to before every one of them is
+    /// shrunk by `agingFactor` — zoxide's aging. A pure count kept last
+    /// month's project at the top for as long as it stayed among the
+    /// forty, and a new one, starting at one, could not climb past it;
+    /// aged, a directory no longer visited sinks while one visited all
+    /// week rises, and the order still holds still from day to day.
+    private static func agingBudget(limit: Int) -> Double {
+        Double(limit * 5)
+    }
+
+    private static let agingFactor = 0.9
 
     /// How many the menu offers. The rest stay stored and keep their
     /// counts; a menu is not a file browser.
     static let menuRowLimit = 8
 
     static let enabledKey = "RecentDirectories.enabled"
-    static let sortOrderKey = "RecentDirectories.sortOrder"
     static let entriesKey = "RecentDirectories.entries"
     static let remoteEntriesKey = "RecentDirectories.remoteEntries"
 
@@ -109,8 +94,6 @@ final class RecentDirectoryStore: ObservableObject {
         // Absent means on: the list is the point of the menu, and a fresh
         // install should see it fill.
         isEnabled = defaults.object(forKey: Self.enabledKey) as? Bool ?? true
-        sortOrder = defaults.string(forKey: Self.sortOrderKey)
-            .flatMap(SortOrder.init(rawValue:)) ?? .recent
         entries = Self.load(from: defaults)
         remoteEntries = Self.loadRemote(from: defaults)
     }
@@ -146,11 +129,16 @@ final class RecentDirectoryStore: ObservableObject {
             updated.sort { $0.lastVisited > $1.lastVisited }
             updated.removeLast(updated.count - limit)
         }
+        if updated.reduce(0, { $0 + $1.visitCount }) > agingBudget(limit: limit) {
+            for index in updated.indices {
+                updated[index].visitCount *= agingFactor
+            }
+        }
         return updated
     }
 
     /// A paired device's remembered directories, as its group in the
-    /// new-tab menu lists them: in the user's order, without its home —
+    /// new-tab menu lists them: most visited first, without its home —
     /// the group's New Terminal is that — and without the ones `excluded`
     /// already offers.
     func menuDirectories(onHost hostID: String, excluding excluded: Set<String> = []) -> [TerminalDirectory] {
@@ -173,7 +161,7 @@ final class RecentDirectoryStore: ObservableObject {
         return Array(offered.prefix(Self.menuRowLimit))
     }
 
-    /// Every entry in the user's order. Ties break on the other measure,
+    /// Every entry, the most visited first. Ties break on the last visit,
     /// then on the path, so the list never shuffles between two openings of
     /// the same menu.
     func sorted() -> [Entry] {
@@ -182,21 +170,11 @@ final class RecentDirectoryStore: ObservableObject {
 
     private func sorted(_ entries: [Entry]) -> [Entry] {
         entries.sorted { first, second in
-            switch sortOrder {
-            case .recent:
-                if first.lastVisited != second.lastVisited {
-                    return first.lastVisited > second.lastVisited
-                }
-                if first.visitCount != second.visitCount {
-                    return first.visitCount > second.visitCount
-                }
-            case .frequent:
-                if first.visitCount != second.visitCount {
-                    return first.visitCount > second.visitCount
-                }
-                if first.lastVisited != second.lastVisited {
-                    return first.lastVisited > second.lastVisited
-                }
+            if first.visitCount != second.visitCount {
+                return first.visitCount > second.visitCount
+            }
+            if first.lastVisited != second.lastVisited {
+                return first.lastVisited > second.lastVisited
             }
             return first.directory.path < second.directory.path
         }

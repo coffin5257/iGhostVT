@@ -7,9 +7,10 @@ import GhosttyTerminal
 import SwiftUI
 import UIKit
 
-/// What only troubleshooting needs, off the main sheet so it doesn't read
-/// as something to fill in: the keystroke-level log and the way into the
-/// logs, and the release package straight from GitHub. The Mac has its own
+/// What is set once or only troubleshooting needs, off the main sheet so
+/// it doesn't read as something to fill in: the default shell, the
+/// keystroke-level log and the way into the logs, and the release package
+/// straight from GitHub. The Mac has its own
 /// pane for this (`MacSettingsPanes`), with the background helper's status
 /// beside it.
 struct AdvancedSettingsView: View {
@@ -20,6 +21,11 @@ struct AdvancedSettingsView: View {
 
     var body: some View {
         Form {
+            // The shell is set once and rarely again, so it waits here
+            // rather than on the main sheet. Ghost Remote runs none.
+            if !AppEdition.isRemoteOnly {
+                ShellSettingsSection()
+            }
             fileTransferSection
             debugSection
             #if !targetEnvironment(macCatalyst)

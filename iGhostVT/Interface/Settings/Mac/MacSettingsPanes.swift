@@ -180,22 +180,9 @@ import SwiftUI
         }
 
         private var recentDirectoriesRow: some View {
-            MacSettingsRow("Recent Directories") {
+            MacSettingsRow("Frequent Directories") {
                 MacCheckbox(String(localized: "Remember Directories"), isOn: $recents.isEnabled)
             } details: {
-                if recents.isEnabled {
-                    HStack(spacing: DS.Padding.s) {
-                        Text("Sort By")
-                        Menu {
-                            RecentDirectorySortItems(recents: recents)
-                        } label: {
-                            MacPopupLabel(title: recents.sortOrder.title)
-                        }
-                        .frame(maxWidth: 200)
-                        .accessibilityLabel("Sort By")
-                        .accessibilityValue(recents.sortOrder.title)
-                    }
-                }
                 MacSettingsNote(
                     """
                     New Tab offers the directories your terminals are in, then \

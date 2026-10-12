@@ -26,13 +26,8 @@ struct SettingsSheet: View {
         NavigationView {
             Form {
                 AppearanceSettingsSection()
-                TextSizeSettingsSection()
-                if !AppEdition.isRemoteOnly {
-                    ShellSettingsSection()
-                }
-                SessionsSettingsSection()
+                TerminalSettingsSection()
                 RemoteAccessSettingsSection()
-                RecentDirectoriesSettingsSection()
                 KeyboardSettingsSection()
                 AboutSettingsSection()
             }
