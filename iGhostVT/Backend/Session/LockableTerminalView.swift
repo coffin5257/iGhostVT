@@ -415,8 +415,43 @@ final class LockableTerminalView: TerminalView {
             routingPaste(super.touchMenuItems(for: context))
         }
 
+        /// A selection that is a web link, and nothing else, gets Open Link
+        /// after Copy.
         override func touchSelectionMenuItems(for context: TerminalTouchSelectionMenuContext) -> [UIMenuElement] {
-            routingPaste(super.touchSelectionMenuItems(for: context))
+            var items = routingPaste(super.touchSelectionMenuItems(for: context))
+            guard let url = Self.link(in: context.selectedText) else { return items }
+            let open = UIAction(
+                title: String(localized: "Open Link"),
+                image: UIImage(systemName: "safari"),
+                identifier: UIAction.Identifier("ighostvt.openLink"),
+            ) { _ in
+                UIApplication.shared.open(url)
+            }
+            let copy = items.firstIndex { ($0 as? UIAction)?.identifier.rawValue == "terminal.copy" }
+            items.insert(open, at: copy.map { $0 + 1 } ?? 0)
+            return items
+        }
+
+        /// The selection as one http(s) link, or nil. The whitespace around
+        /// it goes, and a link a program broke over rows — Claude Code
+        /// prints each row as a line of its own — is put back together,
+        /// each row's indent dropped. The whole selection has to be the
+        /// link: one inside a sentence is not what was selected.
+        static func link(in text: String) -> URL? {
+            let candidate = text
+                .split(whereSeparator: \.isNewline)
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .joined()
+            guard !candidate.isEmpty,
+                  !candidate.contains(where: \.isWhitespace),
+                  let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue),
+                  let match = detector.firstMatch(in: candidate, range: NSRange(candidate.startIndex..., in: candidate)),
+                  match.range.length == (candidate as NSString).length,
+                  let url = match.url,
+                  let scheme = url.scheme?.lowercased(),
+                  scheme == "http" || scheme == "https"
+            else { return nil }
+            return url
         }
 
         private func routingPaste(_ items: [UIMenuElement]) -> [UIMenuElement] {
