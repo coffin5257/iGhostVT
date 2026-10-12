@@ -30,8 +30,19 @@ final class KeyboardState: ObservableObject {
     }
 
     /// The window the overlap is measured against. Set by the view that
-    /// owns this state.
-    weak var window: UIWindow?
+    /// owns this state, which learns its window a moment after it is on
+    /// screen — a keyboard raised at launch can be announced first, and
+    /// is measured again here, or the terminal would sit under it until
+    /// the keyboard next moved.
+    weak var window: UIWindow? {
+        didSet {
+            guard window !== oldValue, let lastScreenFrame else { return }
+            overlap = overlap(of: lastScreenFrame)
+        }
+    }
+
+    /// The frame UIKit last announced, in screen coordinates.
+    private var lastScreenFrame: CGRect?
 
     private var cancellables: Set<AnyCancellable> = []
 
@@ -53,6 +64,7 @@ final class KeyboardState: ObservableObject {
     private func keyboardWillChangeFrame(_ notification: Notification) {
         let info = notification.userInfo
         guard let screenFrame = info?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+        lastScreenFrame = screenFrame
         let visible = Self.isSoftwareKeyboard(screenFrame)
         let overlap = overlap(of: screenFrame)
         guard visible != isVisible || overlap != self.overlap else { return }

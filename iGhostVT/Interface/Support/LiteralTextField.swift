@@ -33,7 +33,6 @@
             if #available(iOS 17.0, *) {
                 field.inlinePredictionType = .no
             }
-            field.keyboardType = .asciiCapable
             field.returnKeyType = .done
             field.clearButtonMode = .whileEditing
             field.setContentHuggingPriority(.defaultLow, for: .horizontal)
