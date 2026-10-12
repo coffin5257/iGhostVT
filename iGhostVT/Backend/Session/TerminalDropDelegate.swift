@@ -101,6 +101,7 @@ final class TerminalDropDelegate: NSObject, UIDropInteractionDelegate {
             let trailer = resolved.last?.isPath == true ? " " : ""
             AppLog.info(.drop, "drop pasting \(resolved.count) of \(payloads.count) item(s)")
             terminal.paste(text: text + trailer)
+            terminal.onDroppedPaths?(resolved.compactMap(\.path))
         }
     }
 
@@ -167,10 +168,14 @@ final class TerminalDropDelegate: NSObject, UIDropInteractionDelegate {
         }
 
         var isPath: Bool {
-            if case .path = self {
-                return true
+            path != nil
+        }
+
+        var path: String? {
+            if case let .path(path) = self {
+                return path
             }
-            return false
+            return nil
         }
     }
 

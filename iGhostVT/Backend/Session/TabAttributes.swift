@@ -73,6 +73,27 @@ final class TabAttributes: ObservableObject {
     /// observes nothing that changes with output. Written by the tab.
     @Published var sessionID: UInt64?
 
+    /// The files dropped on this tab, newest first, as the paths that were
+    /// pasted — on the other device for a remote tab. The context menu's
+    /// Dropped Files lists them so one can go in again without dropping
+    /// it a second time. Kept for as long as the tab lives, never saved:
+    /// the staged copies and the remote uploads are swept a day after they
+    /// were made, so an old entry would name nothing.
+    @Published private(set) var droppedFiles: [DroppedFile] = []
+
+    /// How many `droppedFiles` keeps; the oldest goes first.
+    static let droppedFileLimit = 10
+
+    func noteDropped(paths: [String], isRemote: Bool) {
+        guard !paths.isEmpty else { return }
+        var files = droppedFiles
+        for path in paths {
+            files.removeAll { $0.path == path }
+            files.insert(DroppedFile(path: path, isRemote: isRemote), at: 0)
+        }
+        droppedFiles = Array(files.prefix(Self.droppedFileLimit))
+    }
+
     /// The interaction lock as a flag — what the presentations badge and
     /// what the menus toggle. Setting it on replaces a keyboard lock;
     /// setting it off clears nothing but itself.
@@ -94,5 +115,29 @@ final class TabAttributes: ObservableObject {
         } else if lock == kind {
             lock = nil
         }
+    }
+}
+
+/// One entry of `TabAttributes.droppedFiles`.
+struct DroppedFile: Equatable, Identifiable {
+    /// The path as it was pasted, before the shell escape.
+    let path: String
+    /// Whether `path` is on the tab's other device, where this one cannot
+    /// check that it is still there.
+    let isRemote: Bool
+
+    var id: String {
+        path
+    }
+
+    var name: String {
+        (path as NSString).lastPathComponent
+    }
+
+    /// Whether the file can still be pasted: a local one has to be there
+    /// (the staging sweep removes copies a day on); a remote one is taken
+    /// on trust.
+    var isAvailable: Bool {
+        isRemote || FileManager.default.fileExists(atPath: path)
     }
 }

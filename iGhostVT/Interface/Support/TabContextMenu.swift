@@ -40,6 +40,7 @@ struct TabContextMenu: View {
         #if DEBUG
             let _ = BodyTrace.note("TabContextMenu")
         #endif
+        droppedFiles
         Button(action: copyText) {
             Label("Copy Text", systemImage: "doc.on.doc")
         }
@@ -58,6 +59,30 @@ struct TabContextMenu: View {
         Button(role: .destructive, action: { tabManager.requestClose(tab, from: .contextMenu) }) {
             Label("Close Tab", systemImage: "trash")
         }
+    }
+
+    /// The files dropped on this tab (`TabAttributes.droppedFiles`), each
+    /// pasted again as its path. Names only — a row of file icons read as
+    /// clutter. Absent until something was dropped; a local copy the
+    /// staging sweep has since removed is left out.
+    @ViewBuilder
+    private var droppedFiles: some View {
+        let files = attributes.droppedFiles.filter(\.isAvailable)
+        if !files.isEmpty {
+            Menu {
+                ForEach(files) { file in
+                    Button(file.name) { pasteDroppedFile(file) }
+                }
+            } label: {
+                Label("Dropped Files", systemImage: "tray.and.arrow.down")
+            }
+            Divider()
+        }
+    }
+
+    private func pasteDroppedFile(_ file: DroppedFile) {
+        tabManager.activate(tab)
+        Task { await tab.pasteDroppedFile(file) }
     }
 
     /// Checkmarked toggles where the menu system renders them (iOS 16);

@@ -66,6 +66,10 @@ final class LockableTerminalView: TerminalView {
     /// there.
     var uploadDroppedFiles: (@MainActor ([URL]) async -> [String?])?
 
+    /// Told the paths a drop pasted (`TerminalDropDelegate`), in drop
+    /// order, so the tab can offer them again (`TabAttributes.droppedFiles`).
+    var onDroppedPaths: (@MainActor ([String]) -> Void)?
+
     /// Waits for the tab's connection before a drop pastes, since a paste
     /// sent while it connects goes nowhere. False when the wait is given up.
     var awaitConnection: (@MainActor () async -> Bool)?

@@ -322,6 +322,10 @@ final class TerminalTab: ObservableObject, Identifiable {
             view.onLockedTouch = { [weak self] in
                 self?.lockedTouches.send()
             }
+            view.onDroppedPaths = { [weak self] paths in
+                guard let self else { return }
+                attributes.noteDropped(paths: paths, isRemote: remoteHostID != nil)
+            }
             if let hostID = self?.remoteHostID {
                 view.uploadDroppedFiles = { [weak self] files in
                     guard let self else { return files.map { _ in nil } }
@@ -533,6 +537,28 @@ final class TerminalTab: ObservableObject, Identifiable {
               let image = terminal.attachedPlatformView?.snapshotImage()
         else { return }
         previewImage = image
+    }
+
+    /// Pastes a dropped file's path again, the way the drop did: escaped,
+    /// with a trailing space. The menu that asks may belong to a tab in the
+    /// background, which has to be brought forward first — its surface is
+    /// not mounted until then, and only a mounted view pastes.
+    func pasteDroppedFile(_ file: DroppedFile) async {
+        var view = terminal.attachedPlatformView as? LockableTerminalView
+        for _ in 0 ..< 20 where view == nil {
+            try? await Task.sleep(nanoseconds: 50_000_000)
+            view = terminal.attachedPlatformView as? LockableTerminalView
+        }
+        guard let view else {
+            AppLog.warning(.drop, "dropped file not pasted: the tab has no surface")
+            return
+        }
+        guard await store.waitUntilConnected() else {
+            AppLog.warning(.drop, "dropped file not pasted: the tab never connected")
+            return
+        }
+        view.paste(text: TerminalDropDelegate.shellEscaped(file.path) + " ")
+        attributes.noteDropped(paths: [file.path], isRemote: file.isRemote)
     }
 
     /// Viewport text: the page export, and the card preview of a tab that
