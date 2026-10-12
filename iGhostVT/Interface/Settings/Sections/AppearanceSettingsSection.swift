@@ -38,11 +38,15 @@ struct AppearanceSettingsSection: View {
             NavigationLink {
                 ThemeListView(slot: .light)
             } label: {
-                VStack(alignment: .leading, spacing: DS.Padding.xs) {
+                HStack {
                     Text("Light Theme")
+                        .lineLimit(1)
+                        .layoutPriority(1)
+                    Spacer(minLength: DS.Padding.m)
                     Text(verbatim: ThemeSlot.light.label(in: theme.selection))
                         .foregroundColor(.secondary)
                         .lineLimit(1)
+                        .truncationMode(.middle)
                 }
             }
             .accessibilityLabel("Light Theme")
@@ -50,11 +54,15 @@ struct AppearanceSettingsSection: View {
             NavigationLink {
                 ThemeListView(slot: .dark)
             } label: {
-                VStack(alignment: .leading, spacing: DS.Padding.xs) {
+                HStack {
                     Text("Dark Theme")
+                        .lineLimit(1)
+                        .layoutPriority(1)
+                    Spacer(minLength: DS.Padding.m)
                     Text(verbatim: ThemeSlot.dark.label(in: theme.selection))
                         .foregroundColor(.secondary)
                         .lineLimit(1)
+                        .truncationMode(.middle)
                 }
             }
             .accessibilityLabel("Dark Theme")

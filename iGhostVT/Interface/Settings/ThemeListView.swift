@@ -16,12 +16,18 @@ struct ThemeListView: View {
     let slot: ThemeSlot
     @ObservedObject private var theme = AppTheme.shared
     @State private var searchText = ""
+    @State private var showsAll = false
 
+    /// The shortlist (`ThemeShortlist`) plus whatever this slot has chosen
+    /// from outside it, until Show All; a search covers the whole catalog.
     private var themes: [GhosttyThemeDefinition] {
         let all = GhosttyThemeCatalog.allThemes
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        guard !searchText.isEmpty else { return all }
-        return all.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        guard searchText.isEmpty else {
+            return all.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+        guard !showsAll else { return all }
+        return all.filter { ThemeShortlist.names.contains($0.name) || $0.name == selectedName }
     }
 
     private var selectedName: String? {
@@ -51,6 +57,13 @@ struct ThemeListView: View {
         .font(nil)
         .navigationTitle(slot == .light ? "Light Theme" : "Dark Theme")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(showsAll ? LocalizedStringKey("Show Fewer") : LocalizedStringKey("Show All")) {
+                    withAnimation { showsAll.toggle() }
+                }
+            }
+        }
     }
 
     /// The theme's background and foreground; the selected theme's swatch
