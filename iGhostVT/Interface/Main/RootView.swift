@@ -36,6 +36,7 @@ struct RootView: View {
     /// The strip an iPadOS window's own controls take at its top edge
     /// (`WindowControlsInsetReader`); zero everywhere else.
     @State private var windowControls = WindowControlsInset()
+    @State private var window: UIWindow?
     @Environment(\.layoutDirection) private var layoutDirection
     /// Whether this window shows the regular presentation — sidebar, top
     /// strip — as opposed to the phone's bottom bar. Hard-true on the Mac:
@@ -58,6 +59,7 @@ struct RootView: View {
             theme.background(for: colorScheme)
                 .ignoresSafeArea()
                 .background(WindowControlsInsetReader(inset: $windowControls).ignoresSafeArea())
+                .background(WindowReader(window: $window))
 
             HStack(spacing: 0) {
                 if isRegularWidth, showsSidebar {
@@ -102,6 +104,7 @@ struct RootView: View {
             .catalystIgnoresTitleBar()
         }
         .onAppear(perform: refocus)
+        .onChange(of: window) { keyboard.window = $0 }
         .onChange(of: tabManager.activeTabID) { _ in
             refocusAfterTabSwitch(softwareKeyboardWasVisible: keyboardVisibleForTabSwitch)
         }
@@ -170,18 +173,43 @@ struct RootView: View {
                 }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                // The bar stays up with no tabs: `+` and settings. With a
-                // tab it is the title, the iPad ⋯ menu, and the switcher.
-                if !isRegularWidth, !keyboard.isVisible {
-                    BottomBar(
-                        tabManager: tabManager,
-                        onShowSettings: { interface.showsSettingsSheet = true },
-                        onShowSwitcher: { interface.showsSwitcher = true },
-                    )
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                if !isRegularWidth {
+                    bottomInset
                 }
             }
+            // The phone keeps the terminal above the keyboard itself, in
+            // `bottomInset`; SwiftUI's own avoidance stacked the keyboard on
+            // top of the bar's inset.
+            .ignoresSafeArea(.keyboard, edges: isRegularWidth ? [] : .bottom)
             .catalystColumnBackground(theme.background(for: colorScheme))
+    }
+
+    /// What the phone keeps below the terminal: the bar, and the keyboard.
+    /// The bar stays up with no tabs: `+` and settings. With a tab it is
+    /// the title, the ⋯ menu, and the switcher.
+    ///
+    /// Under the software keyboard the inset is the taller of the two, not
+    /// their sum, and the bar stays where it is: the keys rise over it and
+    /// it fades out beneath them, while the terminal's bottom edge follows
+    /// the keyboard alone. With only the accessory bar up (a hardware
+    /// keyboard) the bar sits on top of it, as before.
+    private var bottomInset: some View {
+        VStack(spacing: 0) {
+            ZStack(alignment: .bottom) {
+                Color.clear
+                    .frame(height: keyboard.showsAccessoryBarOnly ? 0 : keyboard.overlap)
+                BottomBar(
+                    tabManager: tabManager,
+                    onShowSettings: { interface.showsSettingsSheet = true },
+                    onShowSwitcher: { interface.showsSwitcher = true },
+                )
+                .opacity(keyboard.isVisible ? 0 : 1)
+                .allowsHitTesting(!keyboard.isVisible)
+                .accessibilityHidden(keyboard.isVisible)
+            }
+            Color.clear
+                .frame(height: keyboard.showsAccessoryBarOnly ? keyboard.overlap : 0)
+        }
     }
 
     /// Every tab's surface stays mounted so background sessions keep their

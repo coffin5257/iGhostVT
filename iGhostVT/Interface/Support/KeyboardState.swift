@@ -2,8 +2,9 @@ import Combine
 import SwiftUI
 import UIKit
 
-/// Tracks software keyboard visibility so the Safari-style bottom bar can
-/// step aside while typing.
+/// Tracks the software keyboard so the Safari-style bottom bar can step
+/// aside while typing, and how far the keyboard reaches into the window,
+/// so the phone layout can keep the terminal above it itself.
 ///
 /// "Software keyboard" is deliberate: with a hardware keyboard attached, iOS
 /// still posts keyboardWillShow for the accessory bar alone. Treating that
@@ -15,38 +16,73 @@ import UIKit
 final class KeyboardState: ObservableObject {
     @Published private(set) var isVisible = false
 
+    /// How much of the window, above its bottom safe area, the keyboard
+    /// covers — the accessory bar alone included. Moves in the keyboard's
+    /// own animation, so a layout that follows it moves with the keys.
+    @Published private(set) var overlap: CGFloat = 0
+
+    /// Only the accessory bar is up — a hardware keyboard — so the bottom
+    /// bar stays and sits on top of it. Read from where the keyboard is
+    /// going, never from where it is: a keyboard on its way down is not an
+    /// accessory bar, and the bar that rode down on it read as a glitch.
+    var showsAccessoryBarOnly: Bool {
+        !isVisible && overlap > 0
+    }
+
+    /// The window the overlap is measured against. Set by the view that
+    /// owns this state.
+    weak var window: UIWindow?
+
     private var cancellables: Set<AnyCancellable> = []
 
     init() {
-        let center = NotificationCenter.default
-        center.publisher(for: UIResponder.keyboardWillShowNotification)
-            .receive(on: DispatchQueue.main)
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)
             .sink { [weak self] notification in
-                let visible = Self.isSoftwareKeyboard(notification)
-                guard self?.isVisible != visible else { return }
-                withAnimation(DS.Motion.smooth) {
-                    self?.isVisible = visible
-                }
-            }
-            .store(in: &cancellables)
-        center.publisher(for: UIResponder.keyboardWillHideNotification)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                withAnimation(DS.Motion.smooth) {
-                    self?.isVisible = false
+                MainActor.assumeIsolated {
+                    self?.keyboardWillChangeFrame(notification)
                 }
             }
             .store(in: &cancellables)
     }
 
-    private static func isSoftwareKeyboard(_ notification: Notification) -> Bool {
-        guard
-            let value = notification
-            .userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue
-        else { return true }
-        let screenBounds = UIScreen.main.bounds
-        let visibleHeight = value.cgRectValue
-            .intersection(screenBounds).height
+    /// Both values change in one transaction, in the keyboard's own curve.
+    /// They used to change apart — the bar on a spring of its own, the
+    /// terminal on SwiftUI's keyboard avoidance — and the two animations
+    /// played against each other: the bar rode up on the keys before it
+    /// went, and the terminal's bottom edge jumped twice.
+    private func keyboardWillChangeFrame(_ notification: Notification) {
+        let info = notification.userInfo
+        guard let screenFrame = info?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+        let visible = Self.isSoftwareKeyboard(screenFrame)
+        let overlap = overlap(of: screenFrame)
+        guard visible != isVisible || overlap != self.overlap else { return }
+        let duration = info?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double ?? 0.25
+        withAnimation(Self.keyboardAnimation(duration: duration)) {
+            isVisible = visible
+            self.overlap = overlap
+        }
+    }
+
+    /// The keyboard's frame in the window, less the window's own bottom
+    /// safe area, which the layout already keeps clear.
+    private func overlap(of screenFrame: CGRect) -> CGFloat {
+        guard let window, let screen = window.windowScene?.screen else { return 0 }
+        let frame = window.convert(screenFrame, from: screen.coordinateSpace)
+        let covered = window.bounds.maxY - max(frame.minY, window.bounds.minY)
+        guard frame.width > 0, frame.height > 0, covered > 0 else { return 0 }
+        return max(0, covered - window.safeAreaInsets.bottom)
+    }
+
+    /// UIKit's keyboard curve is a private spring (curve 7); this is the
+    /// spring it is known to match. A zero duration is a frame change that
+    /// is not animated.
+    private static func keyboardAnimation(duration: Double) -> Animation? {
+        guard duration > 0 else { return nil }
+        return .interpolatingSpring(mass: 3, stiffness: 1000, damping: 500, initialVelocity: 0)
+    }
+
+    private static func isSoftwareKeyboard(_ screenFrame: CGRect) -> Bool {
+        let visibleHeight = screenFrame.intersection(UIScreen.main.bounds).height
         // The accessory bar tops out well under 100pt; any real keyboard
         // (even the floating one collapsed to a toolbar does not post here)
         // is far taller.
