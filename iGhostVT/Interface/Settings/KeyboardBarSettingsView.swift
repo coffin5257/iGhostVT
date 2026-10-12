@@ -5,7 +5,6 @@
 
 import SwiftUI
 import UIKit
-import UniformTypeIdentifiers
 
 // The bar it edits is a software-keyboard fixture the library defines only
 // off Catalyst.
@@ -34,6 +33,16 @@ import UniformTypeIdentifiers
             .environment(\.editMode, .constant(.active))
             .navigationTitle("Accessory Keys")
             .navigationBarTitleDisplayMode(.inline)
+            // The same sheet as Add Custom Key… under More Keys, which sits
+            // below every key on the bar and the whole spare list.
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showsCustomKeySheet = true }) {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add Custom Key…")
+                }
+            }
             .sheet(isPresented: $showsCustomKeySheet) {
                 CustomKeySheet(editing: nil) { key in
                     store.add(key)
@@ -388,10 +397,11 @@ import UniformTypeIdentifiers
                     Section {
                         // A literal example, not copy: the StringProtocol
                         // overload keeps it out of the string catalog.
-                        TextField(Self.placeholder, text: $text)
-                            .textInputAutocapitalization(.never)
-                            .disableAutocorrection(true)
-                            .accessibilityLabel("Custom Key")
+                        LiteralTextField(
+                            placeholder: Self.placeholder,
+                            text: $text,
+                            accessibilityLabel: String(localized: "Custom Key"),
+                        )
                     } header: {
                         Text("Sends")
                     } footer: {
@@ -400,10 +410,11 @@ import UniformTypeIdentifiers
                     }
 
                     Section {
-                        TextField(trimmed.isEmpty ? Self.placeholder : trimmed, text: $nickname)
-                            .textInputAutocapitalization(.never)
-                            .disableAutocorrection(true)
-                            .accessibilityLabel("Nickname")
+                        LiteralTextField(
+                            placeholder: trimmed.isEmpty ? Self.placeholder : trimmed,
+                            text: $nickname,
+                            accessibilityLabel: String(localized: "Nickname"),
+                        )
                         if hasPicture {
                             Toggle("Fill with Image", isOn: $fillsWithPicture)
                             Button("Delete Image", role: .destructive) {
@@ -419,7 +430,10 @@ import UniformTypeIdentifiers
                             .font(DS.Font.detail)
                     }
                 }
-                .onDrop(of: [.image], isTargeted: nil, perform: acceptDrop)
+                .onImageDrop { image in
+                    droppedPicture = image
+                    fillsWithPicture = true
+                }
                 .navigationTitle(isEditing ? "Edit Key" : "Custom Key")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -436,20 +450,6 @@ import UniformTypeIdentifiers
                 }
             }
             .navigationViewStyle(.stack)
-        }
-
-        private func acceptDrop(_ providers: [NSItemProvider]) -> Bool {
-            guard let provider = providers.first(where: { $0.canLoadObject(ofClass: UIImage.self) }) else {
-                return false
-            }
-            provider.loadObject(ofClass: UIImage.self) { object, _ in
-                guard let image = object as? UIImage else { return }
-                DispatchQueue.main.async {
-                    droppedPicture = image
-                    fillsWithPicture = true
-                }
-            }
-            return true
         }
     }
 
