@@ -89,19 +89,23 @@ enum InterfaceAccent {
     private static let minimumContrast = 3.0
 
     /// The accent of one theme with the user's lines read over it; nil
-    /// when nothing in it qualifies.
+    /// when nothing in it qualifies. A line whose colour is not hex (an
+    /// X11 name, which ghostty also takes) is passed over and the theme's
+    /// own colour stands.
     static func derive(from definition: GhosttyThemeDefinition?, custom: [(key: String, value: String)]) -> RGB? {
         guard let definition else { return nil }
         var palette = definition.palette
         var backgroundHex = definition.background
         for entry in custom {
             switch entry.key {
-            case "background":
+            case "background" where RGB(hex: entry.value) != nil:
                 backgroundHex = entry.value
             case "palette":
                 // `N=#rrggbb`; a later line wins, as in ghostty.
                 let parts = entry.value.split(separator: "=", maxSplits: 1)
-                if parts.count == 2, let index = Int(parts[0].trimmingCharacters(in: .whitespaces)) {
+                if parts.count == 2, RGB(hex: String(parts[1])) != nil,
+                   let index = Int(parts[0].trimmingCharacters(in: .whitespaces))
+                {
                     palette[index] = String(parts[1])
                 }
             default:

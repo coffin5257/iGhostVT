@@ -436,14 +436,19 @@ final class LockableTerminalView: TerminalView {
         /// it goes, and a link a program broke over rows — Claude Code
         /// prints each row as a line of its own — is put back together,
         /// each row's indent dropped. The whole selection has to be the
-        /// link: one inside a sentence is not what was selected.
+        /// link: one inside a sentence is not what was selected, and two
+        /// rows of links are two links, not one. A selection longer than any
+        /// link (Select All) is turned away before it is searched, since the
+        /// menu is built on the main thread.
         static func link(in text: String) -> URL? {
-            let candidate = text
+            guard text.utf16.count <= 4096 else { return nil }
+            let rows = text
                 .split(whereSeparator: \.isNewline)
                 .map { $0.trimmingCharacters(in: .whitespaces) }
-                .joined()
+            let candidate = rows.joined()
             guard !candidate.isEmpty,
                   !candidate.contains(where: \.isWhitespace),
+                  !rows.dropFirst().contains(where: { $0.range(of: "^[A-Za-z][A-Za-z0-9+.-]*://", options: .regularExpression) != nil }),
                   let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue),
                   let match = detector.firstMatch(in: candidate, range: NSRange(candidate.startIndex..., in: candidate)),
                   match.range.length == (candidate as NSString).length,
