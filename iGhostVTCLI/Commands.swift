@@ -7,8 +7,7 @@ import XPC
 /// so a session the app is showing keeps its tab while this runs.
 enum Commands {
     static func list() throws {
-        let client = DaemonClient()
-        try client.connect()
+        let client = try DaemonTarget.connect()
         defer { client.cancel() }
         let sessions = try DaemonClient.sessions(in: client.request(.listSessions))
         guard !sessions.isEmpty else { return }
@@ -28,8 +27,7 @@ enum Commands {
     }
 
     static func capture(sessionID: UInt64, full: Bool) throws {
-        let client = DaemonClient()
-        try client.connect()
+        let client = try DaemonTarget.connect()
         defer { client.cancel() }
         let reply = try client.request(.snapshotSession) {
             xpc_dictionary_set_uint64($0, iGhostVTWireKey.sessionID, sessionID)
@@ -50,8 +48,7 @@ enum Commands {
     }
 
     static func send(sessionID: UInt64, input: [UInt8]) throws {
-        let client = DaemonClient()
-        try client.connect()
+        let client = try DaemonTarget.connect()
         defer { client.cancel() }
         // One message per chunk, in order — the daemon buffers what the
         // program has not read yet. Nothing a user types on a command line
@@ -74,8 +71,7 @@ enum Commands {
     }
 
     static func new(command: [String]) throws {
-        let client = DaemonClient()
-        try client.connect()
+        let client = try DaemonTarget.connect()
         defer { client.cancel() }
         let reply = try client.request(.openSession) { message in
             // A nominal grid: nothing here is going to display the session,
@@ -91,12 +87,22 @@ enum Commands {
             }
             xpc_dictionary_set_value(message, iGhostVTWireKey.command, arguments)
         }
-        print(xpc_dictionary_get_uint64(reply, iGhostVTWireKey.sessionID))
+        let sessionID = xpc_dictionary_get_uint64(reply, iGhostVTWireKey.sessionID)
+        if client is RemoteDaemonClient {
+            // A new session is attached to whoever opened it. This device's
+            // daemon lets go the moment the CLI leaves; a host holds a
+            // device's sessions for a while after its link drops, as for a
+            // phone that will be back — so this one is let go of in words,
+            // or another device would find it in use for that while.
+            try client.request(.detachSession) {
+                xpc_dictionary_set_uint64($0, iGhostVTWireKey.sessionID, sessionID)
+            }
+        }
+        print(sessionID)
     }
 
     static func kill(sessionID: UInt64) throws {
-        let client = DaemonClient()
-        try client.connect()
+        let client = try DaemonTarget.connect()
         defer { client.cancel() }
         try client.request(.closeSession) {
             xpc_dictionary_set_uint64($0, iGhostVTWireKey.sessionID, sessionID)

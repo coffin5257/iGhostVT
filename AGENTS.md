@@ -385,8 +385,9 @@ iOS first deletes this bundle's `.savedState` through `SceneRestorationReset`
 `iGhostVTCLI/` builds `ighostvt-cli`, a second *client* of the daemon —
 one-shot commands (`list`, `capture`, `send`, `new`, `kill`), never an
 interactive attach, so it neither holds a session nor touches the terminal
-it was run from. It compiles `Shared/Protocol/` and nothing else the daemon
-uses: its own XPC client (`DaemonClient`), the `capture` screen model
+it was run from. It compiles `Shared/Protocol/`, and `Shared/Remote/` and
+`Shared/Wire/` for `--host` (below), and nothing else the daemon uses: its
+own XPC client (`DaemonClient`), the `capture` screen model
 (`ScreenRenderer`), and the `send` key vocabulary (`KeyNames`). `ighostvtd`
 depends on it, so every `-scheme ighostvtd` build produces it beside
 `ighostvtd-io`. It ships *inside the app bundle* on both platforms
@@ -492,11 +493,42 @@ only and writes the *app's* file (`RelayConfiguration.macStoreSubpath`,
 same bytes, then posts `RelayConfiguration.storeChangedNotification` so a
 running app drops its cache: setting the helper alone would be undone by
 the app's next reconcile, which sends the app's file — or none. `on` and
-`pair` reconcile the same way once the helper listens. On the device the
-CLI cannot name the app's home (and may be root), so `relay` refuses there.
-The CLI compiles `RelayConfiguration.swift` and `RemoteAccess.swift` from
-`Shared/Remote` through an exception set that excludes every other file in
-that folder — a new file there joins the CLI unless it is added to the set.
+`pair` reconcile the same way once the helper listens. On the device
+`relay` still refuses: the CLI may be root there, which never writes into
+mobile's directories, and nothing tells a running app to read the file.
+
+`ighostvt-cli --host <host> list|capture|send|new|kill` (or
+`IGHOSTVT_HOST`) sends the same session commands to a paired host's
+`ighostvtd-remote`, and `hosts [--nearby]` / `pair <host> [code]` list and
+pair hosts. The CLI is *this device* to those hosts, not a device of its
+own: it reads the app's pairings (`RemoteHosts.json`, the app's relay, and
+`Remote.deviceID` / the device name from the app's preferences domain), so
+every host the app paired with works at once, revoking the device revokes
+both, and a host the CLI pairs shows up in the app. `RemoteDaemonClient` is
+`RemoteDaemonLink` cut down to one command — the same TLS and the same
+hello with the same proof, the remembered address, Bonjour and the relay
+raced, no heartbeat or reconnect — and every op it sends is one the
+helper's `sessionOperations` already admits, so the helper did not change.
+A remote `new` detaches the session before it leaves: a host holds a lost
+device's sessions for `reconnectGraceSeconds`, which would show the new
+terminal as in use elsewhere for that long. Root is refused (it would read
+another account's keys); on the device the app's home is found from the
+CLI's own path — the jbroot's `var/mobile` under roothide, `/var/mobile`
+under rootless. **Both processes write `RemoteHosts.json`**
+(`PairedHostFile`): every change is a read-modify-write under `flock` on
+the directory, reading the file afresh inside the lock, and the file is
+replaced whole (`mkstemp` 0600, then `rename`), so a reader never sees half
+of one. The app keeps it in a `PairedHostCache`: a change re-reads the file
+first when its stamp (device, inode, size, mtime — every write is a new
+inode) is not the one cached, and a dispatch source on the *directory*
+(the file itself is replaced on every write) brings in the CLI's writes.
+The watch ignores a stamp it wrote itself and announces only hosts that
+differ, so what the app does in answer (`syncName` writes) cannot come back
+as another change — `Tests/PairedHosts` (`make test`) runs real processes
+against it: concurrent writers lose nothing, own writes are silent, an
+external one is announced once, an answer that writes loops nothing. No
+Darwin notification is posted. Every file in `Shared/Remote` joins the CLI.
+
 `Scripts/mac-install.sh` is the unattended Mac install built on it: root
 copies the notarized bundle into `/Applications` (SHA256SUMS + `spctl`
 checked, `xattr -cr`, owned by the user so it can update itself), and every other step — the open-at-login LaunchAgent
