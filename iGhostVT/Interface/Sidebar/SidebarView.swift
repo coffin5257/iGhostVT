@@ -43,10 +43,8 @@ struct SidebarView: View {
                             isActive: tab.id == tabManager.activeTabID,
                             onSelect: { tabManager.activeTabID = tab.id },
                             onClose: { tabManager.requestClose(tab, from: .closeButton) },
-                            tabManager: tabManager,
-                            window: window,
                         )
-                        .tabReorderable(tab, in: tabManager, pacing: reorderPacing, preview: .row)
+                        .tabMenuAndReorder(tab, in: tabManager, pacing: reorderPacing, preview: .row, window: window)
                     }
 
                     NewTabMenu(tabManager: tabManager) {
@@ -145,17 +143,15 @@ struct SidebarView: View {
     }
 }
 
-/// Holds the tab as a plain reference: the row carries the tab's context
-/// menu, and a menu host that observed the tab would be re-evaluated on
-/// every retitle — rebuilding the menu while it is open. The title lines
-/// and the trailing slot observe for themselves.
+/// Holds the tab as a plain reference: the list hangs the tab's context
+/// menu on the row, and a menu host that observed the tab would be
+/// re-evaluated on every retitle — rebuilding the menu while it is open.
+/// The title lines and the trailing slot observe for themselves.
 private struct SidebarRow: View {
     let tab: TerminalTab
     let isActive: Bool
     let onSelect: () -> Void
     let onClose: () -> Void
-    let tabManager: TabManager
-    let window: UIWindow?
 
     private var titleFont: DS.Font {
         isActive ? .labelEmphasis : .label
@@ -191,9 +187,6 @@ private struct SidebarRow: View {
         .buttonStyle(.plain)
         // The tinted slab is the only sign of which tab the window is on.
         .accessibilityAddTraits(isActive ? [.isSelected] : [])
-        .contextMenu {
-            TabContextMenu(tab: tab, tabManager: tabManager, window: window)
-        }
     }
 }
 

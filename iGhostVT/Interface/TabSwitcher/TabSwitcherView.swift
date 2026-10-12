@@ -10,6 +10,7 @@ struct TabSwitcherView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var showsSettings = false
     @State private var window: UIWindow?
+    @StateObject private var reorderPacing = TabReorderPacing()
 
     /// Adaptive cards, as many as the width takes. The minimum is what
     /// keeps two per row on the narrowest phones: a 4.7" or 5.4" screen
@@ -41,13 +42,20 @@ struct TabSwitcherView: View {
                                 dismiss()
                             },
                             onClose: { tabManager.requestClose(tab, from: .closeButton) },
-                            tabManager: tabManager,
+                        )
+                        .tabMenuAndReorder(
+                            tab,
+                            in: tabManager,
+                            pacing: reorderPacing,
+                            preview: .card,
+                            onPhone: true,
                             window: window,
                         )
                     }
                     newTabCard
                 }
                 .padding(DS.Padding.l)
+                .tabReorderContainer(onPhone: true)
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -158,8 +166,8 @@ struct TabSwitcherView: View {
     }
 }
 
-/// Holds the tab as a plain reference: the card carries the tab's context
-/// menu, and a menu host that observed the tab would be re-evaluated on
+/// Holds the tab as a plain reference: the grid hangs the tab's context
+/// menu on the card, and a menu host that observed the tab would be re-evaluated on
 /// every retitle — rebuilding the menu while it is open. The titles, the
 /// padlock and the picture observe for themselves.
 private struct TabCard: View {
@@ -167,8 +175,6 @@ private struct TabCard: View {
     let isActive: Bool
     let onSelect: () -> Void
     let onClose: () -> Void
-    let tabManager: TabManager
-    let window: UIWindow?
     @ObservedObject private var theme = AppTheme.shared
     @Environment(\.colorScheme) private var colorScheme
     @State private var textPreview = ""
@@ -194,9 +200,6 @@ private struct TabCard: View {
         }
         .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
         .contentShape(RoundedRectangle(cornerRadius: DS.Radius.l, style: .continuous))
-        .contextMenu {
-            TabContextMenu(tab: tab, tabManager: tabManager, window: window)
-        }
         .onTapGesture(perform: onSelect)
         .onAppear {
             // Read only for the card with no picture; the viewport text is

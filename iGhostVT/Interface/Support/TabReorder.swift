@@ -17,8 +17,9 @@ import UniformTypeIdentifiers
 ///
 /// Built on `onDrag`/`onDrop` rather than `List.onMove` because neither
 /// presentation is a `List`, and rather than `draggable`/`dropDestination`
-/// because those are iOS 16. iPad and the Mac only: a drag needs a pointer
-/// or a lift, and on the phone a long press on a tab is its context menu.
+/// because those are iOS 16. The sidebar is iPad and the Mac only; the
+/// switcher's cards reorder on the phone too, where the long press that
+/// opens a card's menu lifts it, and moving the finger then carries it.
 enum TabReorder {
     /// The drag item's own type, visible to this process alone. A tab
     /// dragged over the terminal must not paste as text, and a type that
@@ -123,6 +124,8 @@ struct TabSlotShape: InsettableShape {
         switch style {
         case .row:
             return RoundedRectangle(cornerRadius: DS.Radius.m, style: .continuous).path(in: rect)
+        case .card:
+            return RoundedRectangle(cornerRadius: DS.Radius.l, style: .continuous).path(in: rect)
         }
     }
 
@@ -148,6 +151,8 @@ enum TabDragPreview {
     enum Style {
         /// The sidebar's card: title over the secondary line.
         case row
+        /// The switcher's card, which paints its own background.
+        case card
     }
 }
 
@@ -161,14 +166,16 @@ private struct TabSlotBackground: ViewModifier {
         switch style {
         case .row:
             content.background(theme.background(for: colorScheme), in: TabSlotShape(style: style))
+        case .card:
+            content
         }
     }
 }
 
 extension View {
     /// Makes this presentation of `tab` a drag source and a drop slot.
-    /// Applied outside the context menu, so the lift that opens the menu
-    /// is also the one that starts the drag. The `dragPreview` and
+    /// Paired with the context menu by `tabMenuAndReorder`, so the lift
+    /// that opens the menu is also the one that starts the drag. The `dragPreview` and
     /// `contextMenuPreview` content shapes mask both lifts to the slot's
     /// own outline — without them the system lifts a sharp-cornered
     /// rectangle of whatever happened to be behind the row.
@@ -178,8 +185,9 @@ extension View {
         in tabManager: TabManager,
         pacing: TabReorderPacing,
         preview: TabDragPreview.Style,
+        onPhone: Bool = false,
     ) -> some View {
-        if TabReorder.isSupported {
+        if TabReorder.isSupported || onPhone {
             modifier(TabSlotBackground(style: preview))
                 .contentShape([.dragPreview, .contextMenuPreview], TabSlotShape(style: preview))
                 .onDrag {
@@ -194,12 +202,41 @@ extension View {
         }
     }
 
+    /// The tab's context menu and its drag, in the order this system
+    /// needs them. Each order breaks the other system: on iOS 27 a drag
+    /// source outside the menu never got the lift, and the row stayed in
+    /// its slot; on iOS 26 a drag source inside the menu lost the press to
+    /// the scroll view, and the list scrolled instead. The Mac keeps the
+    /// order it was built and tested with.
+    @ViewBuilder
+    func tabMenuAndReorder(
+        _ tab: TerminalTab,
+        in tabManager: TabManager,
+        pacing: TabReorderPacing,
+        preview: TabDragPreview.Style,
+        onPhone: Bool = false,
+        window: UIWindow?,
+    ) -> some View {
+        #if targetEnvironment(macCatalyst)
+            contextMenu { TabContextMenu(tab: tab, tabManager: tabManager, window: window) }
+                .tabReorderable(tab, in: tabManager, pacing: pacing, preview: preview, onPhone: onPhone)
+        #else
+            if #available(iOS 27, *) {
+                tabReorderable(tab, in: tabManager, pacing: pacing, preview: preview, onPhone: onPhone)
+                    .contextMenu { TabContextMenu(tab: tab, tabManager: tabManager, window: window) }
+            } else {
+                contextMenu { TabContextMenu(tab: tab, tabManager: tabManager, window: window) }
+                    .tabReorderable(tab, in: tabManager, pacing: pacing, preview: preview, onPhone: onPhone)
+            }
+        #endif
+    }
+
     /// The list's own drop: a release over its padding, or over a control
     /// that is not a tab, still ends the drag where the tab already sits
     /// instead of springing the preview back to where it started.
     @ViewBuilder
-    func tabReorderContainer() -> some View {
-        if TabReorder.isSupported {
+    func tabReorderContainer(onPhone: Bool = false) -> some View {
+        if TabReorder.isSupported || onPhone {
             onDrop(of: [TabReorder.itemType], delegate: TabReorderEndDelegate())
         } else {
             self
