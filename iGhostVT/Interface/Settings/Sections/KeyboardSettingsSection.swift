@@ -22,14 +22,6 @@ struct KeyboardSettingsSection: View {
                     Text("Accessory Keys")
                 }
             #endif
-        } header: {
-            Text("Keyboard")
-                .font(DS.Font.caption)
-        } footer: {
-            #if !targetEnvironment(macCatalyst)
-                Text("Choose and arrange the keys on the bar above the keyboard.")
-                    .font(DS.Font.detail)
-            #endif
         }
     }
 }

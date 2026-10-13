@@ -3047,84 +3047,84 @@
         }
       }
     },
-    "Advanced" : {
+    "Advanced Options" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "متقدم"
+            "value" : "خيارات متقدمة"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erweitert"
+            "value" : "Erweiterte Optionen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Advanced"
+            "value" : "Advanced Options"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avanzado"
+            "value" : "Opciones avanzadas"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avancé"
+            "value" : "Options avancées"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avanzate"
+            "value" : "Opzioni avanzate"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "詳細設定"
+            "value" : "詳細オプション"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "고급"
+            "value" : "고급 옵션"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avançado"
+            "value" : "Opções avançadas"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Дополнительно"
+            "value" : "Дополнительные параметры"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nâng cao"
+            "value" : "Tùy chọn nâng cao"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "高级"
+            "value" : "高级选项"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "進階"
+            "value" : "進階選項"
           }
         }
       }
@@ -5360,89 +5360,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檢查終端機工作階段中是否有程式在執行。在 shell 提示字元處等待的工作階段不算忙碌。"
-          }
-        }
-      }
-    },
-    "Choose and arrange the keys on the bar above the keyboard." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اختر المفاتيح ورتّبها في الشريط أعلى لوحة المفاتيح."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wählen Sie die Tasten der Leiste über der Tastatur aus und ordnen Sie sie an."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose and arrange the keys on the bar above the keyboard."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elija y ordene las teclas de la barra sobre el teclado."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisissez et organisez les touches de la barre au-dessus du clavier."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scegli e disponi i tasti della barra sopra la tastiera."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "キーボード上部のショートカットバーに表示するキーと並び順を設定します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "키보드 위 막대에 표시할 키와 순서를 설정합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha e organize as teclas da barra acima do teclado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выберите и расположите клавиши на панели над клавиатурой."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chọn và sắp xếp các phím trên thanh phía trên bàn phím."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择并排列键盘上方快捷栏中的按键。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "選擇並排列鍵盤上方快捷列中的按鍵。"
           }
         }
       }
@@ -19786,85 +19703,85 @@
         }
       }
     },
-    "New Session at Launch starts a shell on this device when there is nothing to resume. Recent Directories lists where your terminals have been in New Tab." : {
+    "New Session at Launch starts a shell on this device when there is nothing to resume." : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يبدأ «جلسة جديدة عند التشغيل» صدفة على هذا الجهاز عندما لا يوجد ما يُستأنف. يعرض «المجلدات الأخيرة» في علامة التبويب الجديدة الأماكن التي كانت فيها طرفياتك."
+            "value" : "يبدأ «جلسة جديدة عند التشغيل» صدفة على هذا الجهاز عندما لا يوجد ما يُستأنف."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "„Neue Sitzung beim Start“ startet eine Shell auf diesem Gerät, wenn nichts fortzusetzen ist. „Letzte Ordner“ zeigt unter „Neuer Tab“, wo deine Terminals waren."
+            "value" : "„Neue Sitzung beim Start“ startet eine Shell auf diesem Gerät, wenn nichts fortzusetzen ist."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "New Session at Launch starts a shell on this device when there is nothing to resume. Recent Directories lists where your terminals have been in New Tab."
+            "value" : "New Session at Launch starts a shell on this device when there is nothing to resume."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«Nueva sesión al abrir» inicia una shell en este dispositivo cuando no hay nada que reanudar. «Directorios recientes» muestra en Nueva pestaña dónde han estado tus terminales."
+            "value" : "«Nueva sesión al abrir» inicia una shell en este dispositivo cuando no hay nada que reanudar."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "« Nouvelle session au lancement » démarre un shell sur cet appareil quand il n’y a rien à reprendre. « Dossiers récents » affiche dans Nouvel onglet les dossiers où vos terminaux sont allés."
+            "value" : "« Nouvelle session au lancement » démarre un shell sur cet appareil quand il n’y a rien à reprendre."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Nuova sessione all’avvio” avvia una shell su questo dispositivo quando non c’è nulla da riprendere. “Directory recenti” mostra in Nuova scheda dove sono stati i tuoi terminali."
+            "value" : "“Nuova sessione all’avvio” avvia una shell su questo dispositivo quando non c’è nulla da riprendere."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「起動時に新しいセッションを開く」は、再開するものがないときにこのデバイスでシェルを起動します。「最近のディレクトリ」は、ターミナルが使っていた場所を新規タブに表示します。"
+            "value" : "「起動時に新しいセッションを開く」は、再開するものがないときにこのデバイスでシェルを起動します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "‘실행 시 새 세션 열기’은 재개할 것이 없을 때 이 기기에서 셸을 시작합니다. ‘최근 디렉토리’는 터미널이 머물렀던 위치를 새로운 탭에 표시합니다."
+            "value" : "‘실행 시 새 세션 열기’은 재개할 것이 없을 때 이 기기에서 셸을 시작합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Nova sessão ao abrir” inicia um shell neste dispositivo quando não há nada para retomar. “Diretórios recentes” mostra em Nova aba onde seus terminais estiveram."
+            "value" : "“Nova sessão ao abrir” inicia um shell neste dispositivo quando não há nada para retomar."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«Новый сеанс при запуске» запускает оболочку на этом устройстве, когда нечего возобновить. «Недавние папки» показывают в «Новой вкладке», где побывали ваши терминалы."
+            "value" : "«Новый сеанс при запуске» запускает оболочку на этом устройстве, когда нечего возобновить."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Mở phiên mới khi khởi chạy” khởi chạy một shell trên thiết bị này khi không có gì để tiếp tục. “Thư mục gần đây” hiển thị trong Tab mới những nơi terminal của bạn đã ở."
+            "value" : "“Mở phiên mới khi khởi chạy” khởi chạy một shell trên thiết bị này khi không có gì để tiếp tục."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“启动时新建会话”会在没有可恢复的会话时，在本设备上启动一个 Shell。“最近目录”会在新建标签页中列出你的终端去过的目录。"
+            "value" : "“启动时新建会话”会在没有可恢复的会话时，在本设备上启动一个 Shell。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「啟動時新增工作階段」會在沒有可恢復的工作階段時，在本裝置上啟動一個 Shell。「最近目錄」會在新增分頁中列出你的終端機去過的目錄。"
+            "value" : "「啟動時新增工作階段」會在沒有可恢復的工作階段時，在本裝置上啟動一個 Shell。"
           }
         }
       }
@@ -32139,6 +32056,89 @@
         }
       }
     },
+    "Text size applies to new tabs." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يُطبَّق حجم النص على علامات التبويب الجديدة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Textgröße gilt für neue Tabs."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text size applies to new tabs."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El tamaño del texto se aplica a las pestañas nuevas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La taille du texte s’applique aux nouveaux onglets."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La dimensione del testo si applica alle nuove schede."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字サイズは新しいタブに適用されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "텍스트 크기는 새로운 탭에 적용됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O tamanho do texto vale para novas abas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер текста применяется к новым вкладкам."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cỡ chữ áp dụng cho các tab mới."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字大小作用于新标签页。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字大小套用於新分頁。"
+          }
+        }
+      }
+    },
     "That terminal session is already open in another window." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -35127,85 +35127,85 @@
         }
       }
     },
-    "Themes come from the Ghostty theme catalog. Text size applies to new tabs." : {
+    "Themes come from the Ghostty theme catalog." : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "السمات من كتالوج سمات Ghostty. يُطبَّق حجم النص على علامات التبويب الجديدة."
+            "value" : "السمات من كتالوج سمات Ghostty."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Themes stammen aus dem Ghostty-Themenkatalog. Die Textgröße gilt für neue Tabs."
+            "value" : "Themes stammen aus dem Ghostty-Themenkatalog."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Themes come from the Ghostty theme catalog. Text size applies to new tabs."
+            "value" : "Themes come from the Ghostty theme catalog."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los temas vienen del catálogo de temas de Ghostty. El tamaño del texto se aplica a las pestañas nuevas."
+            "value" : "Los temas vienen del catálogo de temas de Ghostty."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les thèmes proviennent du catalogue de thèmes Ghostty. La taille du texte s’applique aux nouveaux onglets."
+            "value" : "Les thèmes proviennent du catalogue de thèmes Ghostty."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I temi provengono dal catalogo di temi di Ghostty. La dimensione del testo si applica alle nuove schede."
+            "value" : "I temi provengono dal catalogo di temi di Ghostty."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "テーマはGhosttyのテーマカタログから提供されます。文字サイズは新しいタブに適用されます。"
+            "value" : "テーマはGhosttyのテーマカタログから提供されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "테마는 Ghostty 테마 카탈로그에서 가져옵니다. 텍스트 크기는 새로운 탭에 적용됩니다."
+            "value" : "테마는 Ghostty 테마 카탈로그에서 가져옵니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os temas vêm do catálogo de temas do Ghostty. O tamanho do texto vale para novas abas."
+            "value" : "Os temas vêm do catálogo de temas do Ghostty."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Темы берутся из каталога тем Ghostty. Размер текста применяется к новым вкладкам."
+            "value" : "Темы берутся из каталога тем Ghostty."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chủ đề lấy từ danh mục chủ đề của Ghostty. Cỡ chữ áp dụng cho các tab mới."
+            "value" : "Chủ đề lấy từ danh mục chủ đề của Ghostty."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "主题来自 Ghostty 主题目录。文字大小作用于新标签页。"
+            "value" : "主题来自 Ghostty 主题目录。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "主題來自 Ghostty 主題目錄。文字大小套用於新分頁。"
+            "value" : "主題來自 Ghostty 主題目錄。"
           }
         }
       }

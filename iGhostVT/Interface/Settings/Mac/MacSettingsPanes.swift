@@ -27,7 +27,7 @@ import SwiftUI
             case .keyboard: String(localized: "Keyboard")
             case .remote: String(localized: "Remote")
             case .configuration: String(localized: "Configuration")
-            case .advanced: String(localized: "Advanced")
+            case .advanced: String(localized: "Advanced Options")
             case .about: String(localized: "About")
             }
         }

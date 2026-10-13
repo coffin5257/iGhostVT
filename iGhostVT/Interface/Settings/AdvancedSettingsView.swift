@@ -34,7 +34,7 @@ struct AdvancedSettingsView: View {
                 }
             #endif
         }
-        .navigationTitle("Advanced")
+        .navigationTitle("Advanced Options")
         .navigationBarTitleDisplayMode(.inline)
         .background(WindowReader(window: $window))
     }

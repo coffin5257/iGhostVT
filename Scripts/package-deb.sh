@@ -150,6 +150,10 @@ strip_and_check_private_paths() {
     local binary="$1"
     local private_path
     /usr/bin/strip -xS "$binary"
+    # Debug diagnostics may retain source paths; only shipped builds forbid them.
+    if [[ "${CONFIGURATION:-Release}" == Debug ]]; then
+        return
+    fi
     for private_path in "$repository_root" "${GITHUB_WORKSPACE:-}" "${RUNNER_TEMP:-}"; do
         [[ -z "$private_path" || "$private_path" == / ]] && continue
         if LC_ALL=C grep -aF "$private_path" "$binary" >/dev/null; then

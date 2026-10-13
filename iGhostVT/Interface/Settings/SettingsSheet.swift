@@ -7,9 +7,9 @@ import Combine
 import SwiftUI
 import UIKit
 
-/// The settings page on iPhone and iPad: one section per file under
-/// `Sections/`, stacked in a Form. The sheet itself only owns navigation
-/// and the Close control. The Mac has a settings window instead
+/// The settings page on iPhone and iPad: sections from the files under
+/// `Sections/`, stacked in a Form with Remote Access and Advanced Options,
+/// navigation and the Close control. The Mac has a settings window instead
 /// (`SettingsWindow`).
 struct SettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -28,6 +28,20 @@ struct SettingsSheet: View {
                 AppearanceSettingsSection()
                 SessionSettingsSection()
                 KeyboardSettingsSection()
+                Section {
+                    NavigationLink {
+                        RemoteAccessView()
+                    } label: {
+                        Text("Remote Access")
+                    }
+                }
+                Section {
+                    NavigationLink {
+                        AdvancedSettingsView()
+                    } label: {
+                        Text("Advanced Options")
+                    }
+                }
                 AboutSettingsSection()
             }
             // Out here, not on the section's row: a Form builds its rows

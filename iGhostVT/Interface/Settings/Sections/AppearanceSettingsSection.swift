@@ -4,10 +4,11 @@
 //
 
 import SwiftUI
+import UIKit
 
-/// Whether the interface follows the system's light or dark setting, then
-/// the two theme slots, light and dark — each opens the catalog list — and
-/// the size a new terminal opens at. The accent is the theme's
+/// Whether the interface follows the system's light or dark setting, the
+/// size a new terminal opens at, then the two theme slots, light and dark
+/// — each opens the catalog list. The accent is the theme's
 /// (`InterfaceAccent`). The interface's own text size is the system's here
 /// — Dynamic Type — and only the Mac, where Catalyst ignores it, has a
 /// stepper for it.
@@ -40,49 +41,60 @@ struct AppearanceSettingsSection: View {
                 .accessibilityLabel("Appearance")
                 .accessibilityValue(appearanceTitle)
             }
+        }
+        Section {
+            Stepper(value: $terminalFontSize, in: TerminalFontSize.range) {
+                SettingsValueRow(title: "Text Size", value: fontSizeDescription)
+            }
+            .accessibilityLabel("Text Size")
+            .accessibilityValue(fontSizeDescription)
+        } footer: {
+            Text("Text size applies to new tabs.")
+                .font(DS.Font.detail)
+        }
+        Section {
             NavigationLink {
                 ThemeListView(slot: .light)
             } label: {
-                HStack {
-                    Text("Light Theme")
-                        .lineLimit(1)
-                        .layoutPriority(1)
-                    Spacer(minLength: DS.Padding.m)
-                    Text(verbatim: ThemeSlot.light.label(in: theme.selection))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
+                themeLabel("Light Theme", slot: .light)
             }
             .accessibilityLabel("Light Theme")
             .accessibilityValue(ThemeSlot.light.label(in: theme.selection))
             NavigationLink {
                 ThemeListView(slot: .dark)
             } label: {
-                HStack {
-                    Text("Dark Theme")
-                        .lineLimit(1)
-                        .layoutPriority(1)
-                    Spacer(minLength: DS.Padding.m)
-                    Text(verbatim: ThemeSlot.dark.label(in: theme.selection))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
+                themeLabel("Dark Theme", slot: .dark)
             }
             .accessibilityLabel("Dark Theme")
             .accessibilityValue(ThemeSlot.dark.label(in: theme.selection))
-            Stepper(value: $terminalFontSize, in: TerminalFontSize.range) {
-                SettingsValueRow(title: "Text Size", value: fontSizeDescription)
-            }
-            .accessibilityLabel("Text Size")
-            .accessibilityValue(fontSizeDescription)
-        } header: {
-            Text("Appearance")
-                .font(DS.Font.caption)
         } footer: {
-            Text("Themes come from the Ghostty theme catalog. Text size applies to new tabs.")
+            Text("Themes come from the Ghostty theme catalog.")
                 .font(DS.Font.detail)
+        }
+    }
+
+    @ViewBuilder
+    private func themeLabel(_ title: LocalizedStringKey, slot: ThemeSlot) -> some View {
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            VStack(alignment: .leading, spacing: DS.Padding.xs) {
+                Text(title)
+                    .lineLimit(1)
+                Text(verbatim: slot.label(in: theme.selection))
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+        } else {
+            HStack {
+                Text(title)
+                    .lineLimit(1)
+                    .layoutPriority(1)
+                Spacer(minLength: DS.Padding.m)
+                Text(verbatim: slot.label(in: theme.selection))
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
         }
     }
 

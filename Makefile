@@ -368,7 +368,7 @@ deb: build
 		"$(DAEMON_IO_BINARY)" \
 		"$(PRODUCTS_DIR)/ighostvtd-remote" \
 		"$(CLI_BINARY)"
-	"$(DEB_PACKAGER)" \
+	CONFIGURATION="$(CONFIGURATION)" "$(DEB_PACKAGER)" \
 		"$(APP_BUNDLE)" \
 		"$(DAEMON_BINARY)" \
 		"$(DAEMON_IO_BINARY)" \

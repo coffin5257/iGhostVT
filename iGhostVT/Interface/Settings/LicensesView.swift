@@ -70,41 +70,43 @@ struct LicensesView: View {
     @State private var sectionInset = DS.Padding.l
 
     var body: some View {
-        Form {
-            Section {
-                if LicenseCatalog.entries.isEmpty {
-                    Text("No license information is available.")
-                        .font(DS.Font.detail)
-                        .foregroundColor(.secondary)
-                } else {
-                    ForEach(LicenseCatalog.entries) { entry in
-                        NavigationLink {
-                            LicenseTextView(entry: entry)
-                        } label: {
-                            LicenseRow(entry: entry)
+        GeometryReader { listGeometry in
+            Form {
+                Section {
+                    if LicenseCatalog.entries.isEmpty {
+                        Text("No license information is available.")
+                            .font(DS.Font.detail)
+                            .foregroundColor(.secondary)
+                    } else {
+                        ForEach(LicenseCatalog.entries) { entry in
+                            NavigationLink {
+                                LicenseTextView(entry: entry)
+                            } label: {
+                                LicenseRow(entry: entry)
+                            }
+                            // Component names are catalog data, spoken verbatim.
+                            .accessibilityLabel(Text(verbatim: entry.name))
+                            .accessibilityValue(entry.licenseName)
                         }
-                        // Component names are catalog data, spoken verbatim.
-                        .accessibilityLabel(Text(verbatim: entry.name))
-                        .accessibilityValue(entry.licenseName)
                     }
-                }
-            } header: {
-                // Match the actual side inset, including on wider layouts.
-                GeometryReader { geometry in
-                    let inset = geometry.frame(in: .named("licensesList")).minX
-                    Color.clear
-                        .onAppear { sectionInset = inset }
-                        .onChange(of: inset) { sectionInset = $0 }
-                }
-                .frame(height: sectionInset)
-                .listRowInsets(EdgeInsets())
-            } footer: {
-                Color.clear
+                } header: {
+                    // Widths preserve the side inset during a navigation transition;
+                    // a frame's origin also includes the page's animated movement.
+                    GeometryReader { geometry in
+                        let inset = (listGeometry.size.width - geometry.size.width) / 2
+                        Color.clear
+                            .onAppear { sectionInset = inset }
+                            .onChange(of: inset) { sectionInset = $0 }
+                    }
                     .frame(height: sectionInset)
                     .listRowInsets(EdgeInsets())
+                } footer: {
+                    Color.clear
+                        .frame(height: sectionInset)
+                        .listRowInsets(EdgeInsets())
+                }
             }
         }
-        .coordinateSpace(name: "licensesList")
         .environment(\.defaultMinListHeaderHeight, 0)
         .navigationTitle("Licenses")
         .navigationBarTitleDisplayMode(.inline)
