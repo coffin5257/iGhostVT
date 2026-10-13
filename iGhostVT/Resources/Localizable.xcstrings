@@ -2051,89 +2051,6 @@
         }
       }
     },
-    "A removed device loses access at once and has to pair again." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يفقد الجهاز الذي تمت إزالته الوصول فورًا ويجب اقترانه مجددًا."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ein entferntes Gerät verliert sofort den Zugriff und muss erneut gekoppelt werden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A removed device loses access at once and has to pair again."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un dispositivo eliminado pierde el acceso al instante y tiene que volver a enlazarse."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un appareil supprimé perd l’accès immédiatement et doit être jumelé à nouveau."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un dispositivo rimosso perde subito l’accesso e deve essere abbinato di nuovo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "削除したデバイスはすぐにアクセスできなくなり、もう一度ペアリングが必要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "제거된 기기는 즉시 접근 권한을 잃으며 다시 페어링해야 합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Um dispositivo removido perde o acesso na hora e precisa ser emparelhado novamente."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удаленное устройство сразу теряет доступ, и его нужно связать заново."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thiết bị bị xóa sẽ mất quyền truy cập ngay và phải ghép đôi lại."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除的设备会立即失去访问权限，需要重新配对。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除的裝置會立即失去存取權限，需要重新配對。"
-          }
-        }
-      }
-    },
     "A shortcut that is off hands its key to the program running in the terminal. Escape always reaches the terminal." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3047,84 +2964,84 @@
         }
       }
     },
-    "Advanced Options" : {
+    "Advanced" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "خيارات متقدمة"
+            "value" : "متقدم"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erweiterte Optionen"
+            "value" : "Erweitert"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Advanced Options"
+            "value" : "Advanced"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opciones avanzadas"
+            "value" : "Avanzado"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Options avancées"
+            "value" : "Avancé"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opzioni avanzate"
+            "value" : "Avanzate"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "詳細オプション"
+            "value" : "詳細設定"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "고급 옵션"
+            "value" : "고급"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opções avançadas"
+            "value" : "Avançado"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Дополнительные параметры"
+            "value" : "Дополнительно"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tùy chọn nâng cao"
+            "value" : "Nâng cao"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "高级选项"
+            "value" : "高级"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "進階選項"
+            "value" : "進階"
           }
         }
       }
@@ -4283,6 +4200,172 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自動"
+          }
+        }
+      }
+    },
+    "Background Activities" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الأنشطة في الخلفية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrundaktivitäten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background Activities"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actividad en segundo plano"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activités en arrière-plan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attività in background"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バックグラウンドアクティビティ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "백그라운드 활동"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atividades em segundo plano"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фоновая активность"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoạt động nền"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "后台活动"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景活動"
+          }
+        }
+      }
+    },
+    "Background Activities keeps your terminals running. With it off, shells and the tasks they run end when the app quits." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تُبقي الأنشطة في الخلفية الطرفيات قيد التشغيل. عند إيقافها، تنتهي الأصداف والمهام التي تشغّلها عند إنهاء التطبيق."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrundaktivitäten halten deine Terminals am Laufen. Ist sie aus, enden Shells und ihre laufenden Aufgaben beim Beenden der App."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background Activities keeps your terminals running. With it off, shells and the tasks they run end when the app quits."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La actividad en segundo plano mantiene tus terminales en ejecución. Si la desactivas, los shells y sus tareas terminan al salir de la app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les activités en arrière-plan maintiennent vos terminaux en marche. Désactivées, les shells et leurs tâches s’arrêtent quand l’app se ferme."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’attività in background mantiene attivi i terminali. Se è disattivata, le shell e le attività in esecuzione terminano quando esci dall’app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バックグラウンドアクティビティを有効にすると、ターミナルは実行され続けます。オフにすると、アプリの終了時にシェルと実行中のタスクが終了します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "백그라운드 활동을 켜면 터미널이 계속 실행됩니다. 끄면 앱을 종료할 때 셸과 실행 중인 작업이 종료됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As atividades em segundo plano mantêm seus terminais em execução. Desativadas, os shells e suas tarefas terminam quando o app é encerrado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фоновая активность сохраняет терминалы запущенными. Если она выключена, оболочки и выполняемые задачи завершаются при выходе из приложения."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoạt động nền giữ cho các terminal tiếp tục chạy. Khi tắt, shell và các tác vụ đang chạy sẽ kết thúc khi thoát ứng dụng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用后台活动将会保持你的终端运行。如果关闭，shell 和正在执行的任务会在退出时结束。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用背景活動將會保持你的終端機執行。如果關閉，shell 和正在執行的工作會在結束時終止。"
           }
         }
       }
@@ -10165,6 +10248,89 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連線已中斷。"
+          }
+        }
+      }
+    },
+    "Display" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "العرض"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anzeige"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pantalla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affichage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schermo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "디스플레이"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tela"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экран"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiển thị"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示"
           }
         }
       }
@@ -24997,89 +25163,6 @@
         }
       }
     },
-    "Recent Directories lists where your terminals have been in New Tab." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يعرض «المجلدات الأخيرة» في علامة التبويب الجديدة الأماكن التي كانت فيها طرفياتك."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„Letzte Ordner“ zeigt unter „Neuer Tab“, wo deine Terminals waren."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recent Directories lists where your terminals have been in New Tab."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Directorios recientes» muestra en Nueva pestaña dónde han estado tus terminales."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "« Dossiers récents » affiche dans Nouvel onglet les dossiers où vos terminaux sont allés."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Directory recenti” mostra in Nuova scheda dove sono stati i tuoi terminali."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「最近のディレクトリ」は、ターミナルが使っていた場所を新規タブに表示します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "‘최근 디렉토리’는 터미널이 머물렀던 위치를 새로운 탭에 표시합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Diretórios recentes” mostra em Nova aba onde seus terminais estiveram."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Недавние папки» показывают в «Новой вкладке», где побывали ваши терминалы."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“Thư mục gần đây” hiển thị trong Tab mới những nơi terminal của bạn đã ở."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“最近目录”会在新建标签页中列出你的终端去过的目录。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「最近目錄」會在新增分頁中列出你的終端機去過的目錄。"
-          }
-        }
-      }
-    },
     "Refresh" : {
       "localizations" : {
         "ar" : {
@@ -35207,89 +35290,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "主題來自 Ghostty 主題庫，將套用至所有視窗與分頁。"
-          }
-        }
-      }
-    },
-    "Themes come from the Ghostty theme catalog." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "السمات من كتالوج سمات Ghostty."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Themes stammen aus dem Ghostty-Themenkatalog."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Themes come from the Ghostty theme catalog."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los temas vienen del catálogo de temas de Ghostty."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les thèmes proviennent du catalogue de thèmes Ghostty."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I temi provengono dal catalogo di temi di Ghostty."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "テーマはGhosttyのテーマカタログから提供されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "테마는 Ghostty 테마 카탈로그에서 가져옵니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os temas vêm do catálogo de temas do Ghostty."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Темы берутся из каталога тем Ghostty."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chủ đề lấy từ danh mục chủ đề của Ghostty."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "主题来自 Ghostty 主题目录。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "主題來自 Ghostty 主題目錄。"
           }
         }
       }

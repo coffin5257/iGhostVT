@@ -8,14 +8,16 @@ import SwiftUI
 import UIKit
 
 /// What is set once or only troubleshooting needs, off the main sheet so
-/// it doesn't read as something to fill in: the default shell, the
-/// keystroke-level log and the way into the logs, and the release package
-/// straight from GitHub. The Mac has its own
+/// it doesn't read as something to fill in: the default shell, whether a
+/// launch starts one, the keystroke-level log and the way into the logs,
+/// and the release package straight from GitHub. The Mac has its own
 /// pane for this (`MacSettingsPanes`), with the background helper's status
 /// beside it.
 struct AdvancedSettingsView: View {
     @AppStorage(DetailedTerminalLog.key) private var verboseTerminalLog = false
     @AppStorage(ZmodemSetting.key) private var zmodemEnabled = ZmodemSetting.defaultValue
+    /// Read by the scene delegate as a window opens; see `SessionLaunch`.
+    @AppStorage(SessionLaunch.key) private var opensNewSession = true
     @ObservedObject private var updates = UpdateCheck.shared
     @State private var window: UIWindow?
 
@@ -25,6 +27,7 @@ struct AdvancedSettingsView: View {
             // rather than on the main sheet. Ghost Remote runs none.
             if !AppEdition.isRemoteOnly {
                 ShellSettingsSection()
+                launchSection
             }
             fileTransferSection
             debugSection
@@ -34,9 +37,18 @@ struct AdvancedSettingsView: View {
                 }
             #endif
         }
-        .navigationTitle("Advanced Options")
+        .navigationTitle("Advanced")
         .navigationBarTitleDisplayMode(.inline)
         .background(WindowReader(window: $window))
+    }
+
+    private var launchSection: some View {
+        Section {
+            Toggle("New Session at Launch", isOn: $opensNewSession)
+        } footer: {
+            Text("New Session at Launch starts a shell on this device when there is nothing to resume.")
+                .font(DS.Font.detail)
+        }
     }
 
     private var fileTransferSection: some View {

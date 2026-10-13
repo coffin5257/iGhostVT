@@ -10,11 +10,6 @@ import SwiftUI
 struct KeyboardSettingsSection: View {
     var body: some View {
         Section {
-            NavigationLink {
-                ShortcutsSettingsView()
-            } label: {
-                Text("Shortcuts")
-            }
             #if !targetEnvironment(macCatalyst)
                 NavigationLink {
                     KeyboardBarSettingsView()
@@ -22,6 +17,14 @@ struct KeyboardSettingsSection: View {
                     Text("Accessory Keys")
                 }
             #endif
+            NavigationLink {
+                ShortcutsSettingsView()
+            } label: {
+                Text("Shortcuts")
+            }
+        } header: {
+            Text("Keyboard")
+                .font(DS.Font.caption)
         }
     }
 }

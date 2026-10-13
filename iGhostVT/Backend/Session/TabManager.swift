@@ -597,6 +597,7 @@ final class TabManager: ObservableObject {
     /// reopens them.
     func detachAllTabs() {
         AppLog.info(.tabs, "scene gone, detaching \(tabs.count) tab(s), sessions \(tabs.map(Self.describeSession(of:)))")
+        Self.detachedLocalSessionIDs.formUnion(tabs.compactMap(\.daemonSessionID))
         for tab in tabs {
             tab.detach()
         }
@@ -605,6 +606,20 @@ final class TabManager: ObservableObject {
         DaemonSessionDirectory.shared.releaseResumableClaim()
         SessionActivityController.shared.refresh()
         RemoteBackgroundGrace.noteTabsChanged()
+    }
+
+    /// This device's sessions that windows gone this run left detached. On
+    /// iOS every scene disconnects before `applicationWillTerminate`, so by
+    /// then no tab holds anything; a quit with Background Activities off
+    /// kills these too (`localSessionIDsForQuit`).
+    private static var detachedLocalSessionIDs: Set<UInt64> = []
+
+    /// Every session of this device's daemon that this app's tabs hold or
+    /// held this run — never a remote tab's, never one only a paired
+    /// device or the CLI opened.
+    static func localSessionIDsForQuit(_ managers: [TabManager]) -> [UInt64] {
+        let held = managers.flatMap(\.tabs).compactMap(\.daemonSessionID)
+        return Array(detachedLocalSessionIDs.union(held)).sorted()
     }
 
     /// The user emptied the window from the tab switcher: every shell dies,

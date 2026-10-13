@@ -228,11 +228,15 @@ files on replacement and destruction; old loose configs in shared tmp are
 left alone.
 
 Settings is a sheet on iPhone and iPad and a window of its own on the
-Mac. The sheet keeps to what people change: its Appearance
-section holds the themes and the terminal's text size,
-Sessions holds New Session at Launch (not in Ghost Remote, whose launch
-never starts a shell on a paired device), Recent Directories and the
-Remote Access link, Default Shell sits under Advanced, and there is no Interface
+Mac. The sheet keeps to what people change, in four sections — Display,
+Sessions, Keyboard, About — none named like a row inside it, and one footer
+(the text size's): Display holds the appearance, the themes and the
+terminal's text size; Sessions is Recent Directories, Background
+Activities and the Remote Access link — in Ghost Remote, which has no
+sessions of its own and so no Background Activities, Remote Access leads,
+since it must show there without scrolling; Keyboard puts Accessory Keys before Shortcuts. Default Shell and New
+Session at Launch (not in Ghost Remote, whose launch never starts a shell
+on a paired device) sit under About ▸ Advanced, and there is no Interface
 stepper — on iOS the chrome follows Dynamic Type, and a step stored by an
 older build is ignored there (`InterfaceTextSizeModifier`); the Mac keeps
 the stepper because Catalyst ignores Dynamic Type. The Mac's window
@@ -332,8 +336,8 @@ cut from one tag.
 - **One switch, `AppEdition.isRemoteOnly`** (`GHOST_REMOTE` in the target's
   `SWIFT_ACTIVE_COMPILATION_CONDITIONS`). Code reads the constant rather
   than `#if`, so both apps compile every branch. The local daemon is closed
-  at its doors — `XPCDaemonLink.init` and `oneShotRequest` — and
-  everything built on them fails soft.
+  at its three doors — `XPCDaemonLink.init`, `oneShotRequest`,
+  `closeSessionsForQuit` — and everything built on them fails soft.
 - The target shares the `iGhostVT/` folder with its own exception set: it
   drops the app's `Info.plist` and `InfoPlist.xcstrings` (its own are in
   `GhostRemote/`) and the four Shortcuts intent files, which only speak to
@@ -656,11 +660,19 @@ tabs of every connected scene (which is why the Mac app opts out of
 automatic and sudden termination — `NSSupportsAutomaticTermination` and
 `NSSupportsSuddenTermination` false in `Info.plist`: a quit that skipped the
 callback would leave every idle shell behind, and one AppKit chose to
-reclaim memory would do it without anyone asking). A quit ends nothing:
-every session stays in the daemon, idle shells included. Keep Sessions
-Running, a switch that made a quit kill every session, was taken out after
-1.6.5 — a shell outliving the app is the point of the daemon, and a tab's
-Close or `ighostvt-cli kill` ends one. The next launch asks nothing: its first window adopts
+reclaim memory would do it without anyone asking): with Background
+Activities on (`SessionKeepAlive`, the default) every session stays in the
+daemon, idle shells included, and with it off the shells this app's own
+tabs run on this device's daemon go (`TerminalTab.daemonSessionID`) —
+never a remote tab's session, and never one a paired device opened here
+or holds. The switch
+was taken out after 1.6.5 as Keep Sessions Running and came back under
+this name; Ghost Remote has none. The kills travel over one blocking
+one-shot connection (`XPCDaemonTransport.closeSessionsForQuit`) — not the
+tabs' transports, whose `closeSession` is fire-and-forget on a queue the
+exit outruns — and the call polls `listSessions` until the closed sessions
+are gone, because a close reply only says the SIGHUP was sent. A session
+another device holds is that device's and is left alone. The next launch asks nothing: its first window adopts
 every session no tab holds and reopens every remote tab the last run had
 (`RemoteTabLedger`, written as a window goes to the background and again
 at terminate, in both editions), each taken back from whoever holds it.

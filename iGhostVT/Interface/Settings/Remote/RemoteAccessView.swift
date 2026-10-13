@@ -13,16 +13,14 @@ struct RemoteAccessView: View {
     @State private var isShowingPairingCode = false
     @State private var pairingHost: DiscoveredRemoteHost?
     @State private var name = RemoteDeviceIdentity.chosenName ?? ""
+    @FocusState private var isEditingName: Bool
     @State private var isConfirmingRelayRemoval = false
 
     var body: some View {
         Form {
+            thisDeviceSection
             // Ghost Remote is never a host: it has no daemon to open
             // terminals in.
-            if !AppEdition.isRemoteOnly {
-                thisDeviceSection
-            }
-            nameSection
             if !AppEdition.isRemoteOnly, model.isEnabled {
                 allowedDevicesSection
             }
@@ -63,38 +61,49 @@ struct RemoteAccessView: View {
     // MARK: - This device
 
     /// What the other devices call this one, in their lists and on their
-    /// tabs. Empty is the name set on the device.
-    private var nameSection: some View {
-        Section {
-            TextField(RemoteDeviceIdentity.systemName, text: $name)
-                .disableAutocorrection(true)
-                .onSubmit(saveName)
-        } header: {
-            Text("Name")
-                .font(DS.Font.caption)
-        } footer: {
-            Text("Your other devices see this device by this name. Leave it empty to use the name set on the device.")
-                .font(DS.Font.detail)
-        }
-    }
-
-    private func saveName() {
-        guard name != (RemoteDeviceIdentity.chosenName ?? "") else { return }
-        model.setName(name)
-    }
-
+    /// tabs, and — on a host — the switch. Empty is the name set on the
+    /// device; a tap on an empty field starts from that name, so it can be
+    /// edited rather than retyped.
     private var thisDeviceSection: some View {
         Section {
-            Toggle("Allow Remote Access", isOn: Binding(
-                get: { model.isEnabled },
-                set: { model.setEnabled($0) },
-            ))
-            .disabled(!model.hasLoaded || model.status.isUnavailable)
-            // Said only when something is wrong; the switch says the rest.
-            if let problem {
-                SettingsValueText(title: "Status", value: problem, isWarning: true)
+            // The field takes the whole row past its label, and the label
+            // hands it the focus, so a tap anywhere on the row edits.
+            HStack(spacing: DS.Padding.m) {
+                Text("Name")
+                    .onTapGesture { isEditingName = true }
+                TextField(RemoteDeviceIdentity.systemName, text: $name)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: .infinity)
+                    .disableAutocorrection(true)
+                    .focused($isEditingName)
+                    .onSubmit(saveName)
+            }
+            .onChange(of: isEditingName) { editing in
+                if editing, name.isEmpty {
+                    name = RemoteDeviceIdentity.systemName
+                }
+            }
+            if !AppEdition.isRemoteOnly {
+                Toggle("Allow Remote Access", isOn: Binding(
+                    get: { model.isEnabled },
+                    set: { model.setEnabled($0) },
+                ))
+                .disabled(!model.hasLoaded || model.status.isUnavailable)
+                // Said only when something is wrong; the switch says the rest.
+                if let problem {
+                    SettingsValueText(title: "Status", value: problem, isWarning: true)
+                }
             }
         }
+    }
+
+    /// The device's own name, left as it was filled in, is no choice: it is
+    /// saved as empty so the name follows the device if that is renamed.
+    private func saveName() {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        let chosen = trimmed == RemoteDeviceIdentity.systemName ? "" : name
+        guard chosen != (RemoteDeviceIdentity.chosenName ?? "") else { return }
+        model.setName(chosen)
     }
 
     // MARK: - Relay
@@ -171,11 +180,6 @@ struct RemoteAccessView: View {
         } header: {
             Text("Authorized Devices")
                 .font(DS.Font.caption)
-        } footer: {
-            if !model.status.devices.isEmpty {
-                Text("A removed device loses access at once and has to pair again.")
-                    .font(DS.Font.detail)
-            }
         }
     }
 
@@ -196,27 +200,37 @@ struct RemoteAccessView: View {
     /// own, as Bluetooth settings list them — the ones it could pair with.
     @ViewBuilder
     private var yourDevicesSection: some View {
-        Section {
-            ForEach(directory.paired) { host in
-                NavigationLink {
-                    RemoteHostDetailView(hostID: host.id)
-                } label: {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            DeviceNameText(name: host.displayName, address: directory.address(of: host))
-                            if let theirs = directory.mismatchedVersion(of: host.id) {
-                                Text(RemoteVersionText.needsUpdate(theirs: theirs))
-                                    .font(DS.Font.detail)
-                                    .foregroundColor(.orange)
+        // No paired device, no section: an empty header over nothing read
+        // as a list that failed to load.
+        if !directory.paired.isEmpty {
+            Section {
+                ForEach(directory.paired) { host in
+                    NavigationLink {
+                        RemoteHostDetailView(hostID: host.id)
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                DeviceNameText(name: host.displayName, address: directory.address(of: host))
+                                if let theirs = directory.mismatchedVersion(of: host.id) {
+                                    Text(RemoteVersionText.needsUpdate(theirs: theirs))
+                                        .font(DS.Font.detail)
+                                        .foregroundColor(.orange)
+                                }
                             }
+                            Spacer()
+                            Text(Self.whereabouts(of: host.id, in: directory))
+                                .foregroundColor(.secondary)
                         }
-                        Spacer()
-                        Text(Self.whereabouts(of: host.id, in: directory))
-                            .foregroundColor(.secondary)
                     }
                 }
+            } header: {
+                Text("Accessible Devices")
+                    .font(DS.Font.caption)
             }
-            if directory.paired.isEmpty, unpairedNearby.isEmpty, directory.unpairedAtRelay.isEmpty {
+        } else if unpairedNearby.isEmpty, directory.unpairedAtRelay.isEmpty {
+            // Nothing paired and nothing to pair with: say where devices
+            // will show up rather than leave the page blank.
+            Section {
                 Group {
                     if directory.relay == nil {
                         Text("Devices on this network with remote access on appear here.")
@@ -226,9 +240,6 @@ struct RemoteAccessView: View {
                 }
                 .foregroundColor(.secondary)
             }
-        } header: {
-            Text("Accessible Devices")
-                .font(DS.Font.caption)
         }
         if !(unpairedNearby + directory.unpairedAtRelay).isEmpty {
             Section {

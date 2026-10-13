@@ -5,7 +5,10 @@
 
 import SwiftUI
 
-/// Version, the licenses, and the raw Ghostty configuration.
+/// Version, the licenses, and the ways into the two pages most people
+/// never open: the raw Ghostty configuration, and Advanced — the Mac
+/// helper and the keystroke log. They sit here, at the end, because the
+/// people who need them will look past Version.
 struct AboutSettingsSection: View {
     var body: some View {
         Section {
@@ -28,6 +31,14 @@ struct AboutSettingsSection: View {
             } label: {
                 Text("Ghostty Configuration")
             }
+            NavigationLink {
+                AdvancedSettingsView()
+            } label: {
+                Text("Advanced")
+            }
+        } header: {
+            Text("About")
+                .font(DS.Font.caption)
         }
     }
 

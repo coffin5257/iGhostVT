@@ -116,22 +116,48 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     /// is still running (a suspended app gets no notice, and its shells stay
     /// in the daemon either way).
     ///
-    /// Every session stays in the daemon, idle shells included, and the
-    /// next launch brings every one back as a tab, the remote tabs too
+    /// With Background Activities on every session stays in the daemon, and
+    /// the next launch brings every one back as a tab, the remote tabs too
     /// (`RemoteTabLedger`, written here as well, since a Mac quit need not
-    /// send a window to the background first). A shell surviving the app is
-    /// the point of the daemon, so there is no switch to end them here; a
-    /// tab's own Close, or `ighostvt-cli kill`, is how a session ends.
+    /// send a window to the background first). With it off the shells this
+    /// app's own tabs run on this device's daemon die, and the files the
+    /// terminal staged for pastes and drops go with the last shell that
+    /// could refer to them. Only those: a remote tab's session is another
+    /// device's, and a session a paired device opened on this one's daemon
+    /// is that device's to end — the quit touches neither.
     ///
     /// The daemon's own exit is not asked for: once nothing is connected
     /// and nothing is held it leaves by itself, on both platforms.
     func applicationWillTerminate(_: UIApplication) {
         GhosttyAppConfiguration.removeTemporaryFiles()
         RemoteTabLedger.save(ShortcutBridge.tabManagers())
-        // Ghost Remote's tabs are other devices' sessions; each tab's link
-        // simply drops.
+        // Ghost Remote's tabs are other devices' sessions, which outlive
+        // it whatever this switch says; each tab's link simply drops.
         guard !AppEdition.isRemoteOnly else { return }
-        AppLog.info(.tabs, "quitting, keeping every session for the next launch to restore")
+        if SessionKeepAlive.isEnabled {
+            // Every session stays, idle shells included: the next launch
+            // brings them all back as tabs.
+            AppLog.info(.tabs, "quitting, keeping every session for the next launch to restore")
+        } else {
+            let local = TabManager.localSessionIDsForQuit(ShortcutBridge.tabManagers())
+            AppLog.info(.tabs, "quitting with Background Activities off, killing \(local.count) local session(s)")
+            if !local.isEmpty {
+                XPCDaemonTransport.closeSessionsForQuit(local)
+            }
+            TerminalFileStaging.removeAllFiles()
+        }
+    }
+}
+
+/// Whether daemon sessions outlive the app — Settings ▸ Sessions ▸
+/// Background Activities. On by default: a shell surviving the app is the
+/// point of the daemon. Off is for a Mac (or a user) that wants ⌘Q to mean
+/// what it means in Terminal. Ghost Remote has no sessions of its own.
+enum SessionKeepAlive {
+    static let key = "Session.keepAlive"
+
+    static var isEnabled: Bool {
+        UserDefaults.standard.object(forKey: key) as? Bool ?? true
     }
 }
 

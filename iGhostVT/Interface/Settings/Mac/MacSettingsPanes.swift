@@ -27,7 +27,7 @@ import SwiftUI
             case .keyboard: String(localized: "Keyboard")
             case .remote: String(localized: "Remote")
             case .configuration: String(localized: "Configuration")
-            case .advanced: String(localized: "Advanced Options")
+            case .advanced: String(localized: "Advanced")
             case .about: String(localized: "About")
             }
         }
@@ -82,6 +82,7 @@ import SwiftUI
         }
 
         @AppStorage(SessionLaunch.key) private var opensNewSession = true
+        @AppStorage(SessionKeepAlive.key) private var keepAlive = true
         @ObservedObject private var agent = MacLaunchAgent.shared
         @ObservedObject private var recents = RecentDirectoryStore.shared
 
@@ -96,6 +97,14 @@ import SwiftUI
                         """
                         New Session at Launch opens a shell on this Mac when \
                         the app starts with nothing to resume.
+                        """,
+                    )
+                    MacCheckbox(String(localized: "Background Activities"), isOn: $keepAlive)
+                        .padding(.top, DS.Padding.s)
+                    MacSettingsNote(
+                        """
+                        Background Activities keeps your terminals running. With it \
+                        off, shells and the tasks they run end when the app quits.
                         """,
                     )
                 }

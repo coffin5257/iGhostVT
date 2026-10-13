@@ -5,28 +5,43 @@
 
 import SwiftUI
 
-/// What a launch opens and what the new-tab menu remembers.
-/// Ghost Remote has no shell of its own to start,
-/// so it has no launch switch.
+/// What the new-tab menu remembers, whether a quit leaves the sessions
+/// running (Background Activities, `SessionKeepAlive`), and the way into
+/// Settings ▸ Remote Access. The order differs by edition: Ghost Remote has
+/// no sessions of its own, so it has no Background Activities, and Remote
+/// Access — its whole purpose — leads. New Session at Launch is set once,
+/// so it waits in Advanced (`AdvancedSettingsView`).
 struct SessionSettingsSection: View {
-    /// Read by the scene delegate as a window opens; see `SessionLaunch`.
-    @AppStorage(SessionLaunch.key) private var opensNewSession = true
     @ObservedObject private var recents = RecentDirectoryStore.shared
+    /// Read by AppDelegate when the app quits; see `SessionKeepAlive`.
+    @AppStorage(SessionKeepAlive.key) private var keepAlive = true
 
     var body: some View {
-        if !AppEdition.isRemoteOnly {
-            Section {
-                Toggle("New Session at Launch", isOn: $opensNewSession)
-            } footer: {
-                Text("New Session at Launch starts a shell on this device when there is nothing to resume.")
+        Section {
+            if AppEdition.isRemoteOnly {
+                remoteAccessLink
+                Toggle("Recent Directories", isOn: $recents.isEnabled)
+            } else {
+                Toggle("Recent Directories", isOn: $recents.isEnabled)
+                Toggle("Background Activities", isOn: $keepAlive)
+                remoteAccessLink
+            }
+        } header: {
+            Text("Sessions")
+                .font(DS.Font.caption)
+        } footer: {
+            if !AppEdition.isRemoteOnly {
+                Text("Background Activities keeps your terminals running. With it off, shells and the tasks they run end when the app quits.")
                     .font(DS.Font.detail)
             }
         }
-        Section {
-            Toggle("Recent Directories", isOn: $recents.isEnabled)
-        } footer: {
-            Text("Recent Directories lists where your terminals have been in New Tab.")
-                .font(DS.Font.detail)
+    }
+
+    private var remoteAccessLink: some View {
+        NavigationLink {
+            RemoteAccessView()
+        } label: {
+            Text("Remote Access")
         }
     }
 }
