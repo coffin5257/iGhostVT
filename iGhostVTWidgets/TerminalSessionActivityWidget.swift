@@ -11,6 +11,7 @@ import WidgetKit
 /// sessions. Expanded, the island shows a trimmed rendition of the lock
 /// screen's card; closed, it wears the bare ghost with the count
 /// in the status ring — the ghost alone when minimal.
+@available(iOS 16.2, *)
 struct TerminalSessionActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TerminalSessionAttributes.self) { context in
@@ -71,6 +72,7 @@ struct TerminalSessionActivityWidget: Widget {
 /// The lock screen card cut down to what the expanded island's height and
 /// corner radii leave room for: the counts phrase and the first two
 /// sessions. The name and the ghost sit in the regions above.
+@available(iOS 16.2, *)
 private struct IslandSummary: View {
     let state: TerminalSessionAttributes.ContentState
 
@@ -97,7 +99,7 @@ private struct IslandSummary: View {
 #if DEBUG
 
     /// The Live Activity `#Preview` and its `PreviewActivityBuilder` are iOS
-    /// 17.0 API, and the extension deploys to 16.2. A freestanding macro takes
+    /// 17.0 API, and the extension deploys to 15.0. A freestanding macro takes
     /// no `@available`, so the previews sit inside a scope that carries it —
     /// Xcode 27's compiler checks the builder's availability at the call site,
     /// where Xcode 26 did not.

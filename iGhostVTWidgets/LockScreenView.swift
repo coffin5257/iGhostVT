@@ -12,6 +12,7 @@ import WidgetKit
 /// number and a status bar that, with one session, was always full.
 ///
 /// Rendered on the lock screen only; the island has its own trimmed rendition.
+@available(iOS 16.2, *)
 struct LockScreenView: View {
     @Environment(\.colorScheme) private var colorScheme
 
@@ -37,6 +38,7 @@ struct LockScreenView: View {
 }
 
 /// The ghost, the name, and the counts phrase trailing in the dim style.
+@available(iOS 16.2, *)
 struct SummaryHeader: View {
     let state: TerminalSessionAttributes.ContentState
     let glyphSize: CGFloat
@@ -65,6 +67,7 @@ struct SummaryHeader: View {
 
 /// Remote access is on: what this device is called to the others, and who
 /// is connected — the reason the activity is up with no session at all.
+@available(iOS 16.2, *)
 struct RemoteAccessLine: View {
     let remote: TerminalSessionAttributes.RemoteAccess
 
@@ -107,6 +110,7 @@ struct RemoteAccessLine: View {
 
 /// One line per listed session — its status dot, the program in front, and
 /// the directory — then how many more there are past the last row.
+@available(iOS 16.2, *)
 struct SessionRows: View {
     let state: TerminalSessionAttributes.ContentState
     let limit: Int
@@ -128,6 +132,7 @@ struct SessionRows: View {
     }
 }
 
+@available(iOS 16.2, *)
 private struct SessionRow: View {
     let session: TerminalSessionAttributes.Session
 
@@ -160,6 +165,7 @@ private struct SessionRow: View {
     }
 }
 
+@available(iOS 16.2, *)
 extension TerminalSessionAttributes.Session {
     /// The program in front first — it is the daemon's short, stable name
     /// — then whatever the shell titled itself, then the configured shell,
@@ -181,6 +187,7 @@ extension TerminalSessionAttributes.Session {
     }
 }
 
+@available(iOS 16.2, *)
 extension TerminalSessionAttributes.Session.Status {
     var color: Color {
         switch self {
@@ -194,6 +201,7 @@ extension TerminalSessionAttributes.Session.Status {
 /// What the card and the island derive from the payload. The counts
 /// describe the listed sessions — the payload carries no status for
 /// overflowed or detached ones.
+@available(iOS 16.2, *)
 extension TerminalSessionAttributes.ContentState {
     var liveCount: Int {
         sessions.filter { $0.status == .live }.count
@@ -234,10 +242,12 @@ extension TerminalSessionAttributes.ContentState {
 
 #if DEBUG
 
+    @available(iOS 16.2, *)
     extension TerminalSessionAttributes {
         static let preview = TerminalSessionAttributes()
     }
 
+    @available(iOS 16.2, *)
     extension TerminalSessionAttributes.ContentState {
         /// The common case: a couple of tabs, one frontmost.
         static let typical = TerminalSessionAttributes.ContentState(
