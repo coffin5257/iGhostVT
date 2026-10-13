@@ -289,6 +289,12 @@ harness:
 		$$(find "$(ROOT_DIR)/Shared/Wire" "$(ROOT_DIR)/Shared/Remote" "$(ROOT_DIR)/Tests/RemoteHarness" -name '*.swift' | sort) \
 		-o "$$harness_dir/remote-harness" && \
 	"$$harness_dir/remote-harness" && \
+	xcrun --sdk macosx swiftc -swift-version 5 -I "$(XPC_SHIM_DIR)" -I "$(CORECRYPTO_SHIM_DIR)" \
+		"$(ROOT_DIR)/Shared/Protocol/iGhostVTProtocol.swift" \
+		"$(ROOT_DIR)/Shared/Protocol/iGhostVTXPC.swift" \
+		$$(find "$(ROOT_DIR)/Shared/Wire" "$(ROOT_DIR)/Shared/Remote" "$(ROOT_DIR)/Tests/PairedHosts" -name '*.swift' | sort) \
+		-o "$$harness_dir/paired-hosts" && \
+	"$$harness_dir/paired-hosts" && \
 	xcrun --sdk macosx swiftc -swift-version 5 \
 		"$(ROOT_DIR)/iGhostVT/Backend/Zmodem/ZmodemCRC.swift" \
 		"$(ROOT_DIR)/iGhostVT/Backend/Zmodem/ZmodemFrame.swift" \

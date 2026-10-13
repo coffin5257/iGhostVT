@@ -252,7 +252,7 @@ enum RemoteCommands {
         return formatter.string(from: date)
     }
 
-    private static func day(_ date: Date) -> String {
+    static func day(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         return formatter.string(from: date)

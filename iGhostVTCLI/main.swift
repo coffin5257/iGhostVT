@@ -3,16 +3,19 @@ import Foundation
 
 // A one-shot client of `ighostvtd`: it lists the daemon's sessions, reads
 // what one is showing, types into one, opens one, or closes one, or manages
-// this device's remote access, and exits.
+// this device's remote access, and exits. With `--host` the session
+// commands go to a paired host's daemon instead, over the link the app uses.
 // It never attaches — a session the app has open keeps its tab while this
 // runs, and nothing here takes over the terminal it was run from.
 
 let usage = """
-usage: ighostvt-cli list
-       ighostvt-cli capture <sid> [--full]
-       ighostvt-cli send <sid> (text <string> | key <name>)...
-       ighostvt-cli new [-- <command> [argument ...]]
-       ighostvt-cli kill <sid>
+usage: ighostvt-cli [--host <host>] list
+       ighostvt-cli [--host <host>] capture <sid> [--full]
+       ighostvt-cli [--host <host>] send <sid> (text <string> | key <name>)...
+       ighostvt-cli [--host <host>] new [-- <command> [argument ...]]
+       ighostvt-cli [--host <host>] kill <sid>
+       ighostvt-cli hosts [--nearby]
+       ighostvt-cli pair <host> [<code>]
        ighostvt-cli remote [status]
        ighostvt-cli remote (on | off)
        ighostvt-cli remote pair [--wait | --end]
@@ -31,6 +34,14 @@ usage: ighostvt-cli list
   new           start a session and print its id, running the shell or the
                 given command; it stays open for iGhostVT to show
   kill          close a session and wait for it to exit
+  --host        run the command on a paired host instead of this device,
+                named by its name, id, or address; IGHOSTVT_HOST does the
+                same. The hosts are the ones iGhostVT is paired with
+  hosts         list the paired hosts; --nearby lists the hosts offering
+                remote access on this network and at the relay
+  pair          pair with a host found nearby or at the relay, with the
+                code it shows (`ighostvt-cli remote pair` there); read
+                from the terminal when not given. iGhostVT lists it too
   remote        this device's remote access:
     status      whether it is on, this host's name and id, the relay, the
                 open pairing code, and the paired devices
@@ -49,7 +60,8 @@ usage: ighostvt-cli list
                 copy's team. iGhostVT relaunches and every session on the
                 Mac ends. --check only says whether there is one
 
-On the Mac, run it as the user iGhostVT runs for, never as root.
+On the Mac, run it as the user iGhostVT runs for, never as root. --host,
+hosts and pair read iGhostVT's own pairings, and need that user everywhere.
 """
 
 enum Command {
@@ -61,6 +73,17 @@ enum Command {
     case kill(sessionID: UInt64)
     case remote(RemoteCommand)
     case update(checkOnly: Bool)
+    case hosts(nearby: Bool)
+    case pair(selector: String, code: String?)
+
+    /// The session commands, which `--host` sends elsewhere; everything
+    /// else is about this device.
+    var takesHost: Bool {
+        switch self {
+        case .list, .capture, .send, .new, .kill: true
+        case .help, .remote, .update, .hosts, .pair: false
+        }
+    }
 }
 
 func parseSessionID(_ text: String?, _ what: String) throws -> UInt64 {
@@ -133,6 +156,17 @@ func parse(_ arguments: [String]) throws -> Command {
         case ["--check"]: return .update(checkOnly: true)
         default: throw CLIError.usage("The update command takes an optional --check.")
         }
+    case "hosts":
+        switch rest {
+        case []: return .hosts(nearby: false)
+        case ["--nearby"]: return .hosts(nearby: true)
+        default: throw CLIError.usage("The hosts command takes an optional --nearby.")
+        }
+    case "pair":
+        guard (1 ... 2).contains(rest.count), let selector = rest.first, !selector.hasPrefix("-") else {
+            throw CLIError.usage("The pair command takes a host and an optional code. Run `ighostvt-cli hosts --nearby` to see them.")
+        }
+        return .pair(selector: selector, code: rest.count == 2 ? rest[1] : nil)
     case "-h", "--help", "help":
         return .help
     default:
@@ -197,8 +231,41 @@ func fail(_ error: Error) -> Never {
 // error this program sees, not a signal that kills it mid-print.
 signal(SIGPIPE, SIG_IGN)
 
+/// `--host <host>` (or `--host=<host>`) ahead of the command, and whether
+/// it was given there rather than taken from `IGHOSTVT_HOST`; the rest of
+/// the arguments.
+func parseHost(_ arguments: [String]) throws -> (host: String?, named: Bool, rest: [String]) {
+    var rest = arguments
+    let first = rest.first ?? ""
+    if first == "--host" || first.hasPrefix("--host=") {
+        rest.removeFirst()
+        var value = String(first.dropFirst("--host=".count))
+        if !first.hasPrefix("--host=") {
+            value = rest.first ?? ""
+            if !rest.isEmpty {
+                rest.removeFirst()
+            }
+        }
+        guard !value.isEmpty else { throw CLIError.usage("--host needs a host.") }
+        return (value, true, rest)
+    }
+    let environment = ProcessInfo.processInfo.environment["IGHOSTVT_HOST"].flatMap { $0.isEmpty ? nil : $0 }
+    return (environment, false, rest)
+}
+
 do {
-    switch try parse(Array(CommandLine.arguments.dropFirst())) {
+    let (host, named, arguments) = try parseHost(Array(CommandLine.arguments.dropFirst()))
+    let command = try parse(arguments)
+    if let host {
+        if command.takesHost {
+            DaemonTarget.hostSelector = host
+        } else if named {
+            // The environment applies where it can and is ignored
+            // elsewhere; asked for on the command line, it is a mistake.
+            throw CLIError.usage("--host applies to list, capture, send, new and kill.")
+        }
+    }
+    switch command {
     case .help:
         // Asked for, so it is the output, not a complaint about the input.
         print(usage)
@@ -216,6 +283,10 @@ do {
         try RemoteCommands.run(command)
     case let .update(checkOnly):
         try UpdateCommand.run(checkOnly: checkOnly)
+    case let .hosts(nearby):
+        try nearby ? HostCommands.nearby() : HostCommands.list()
+    case let .pair(selector, code):
+        try HostCommands.pair(selector: selector, code: code)
     }
     exit(0)
 } catch {

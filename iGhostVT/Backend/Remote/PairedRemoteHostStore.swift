@@ -2,41 +2,6 @@ import Foundation
 import Network
 import UIKit
 
-/// A device this one has paired with: what to call it, and the key that
-/// opens a link to it. The key is the whole of the pairing — whoever holds
-/// it is this device to that host.
-struct PairedRemoteHost: Codable, Equatable, Identifiable, Sendable {
-    /// The host's own id, from its Bonjour TXT record and the pairing reply.
-    var id: String
-    /// What the host calls itself — its device name, kept in step with its
-    /// advertisement (`PairedRemoteHostStore.syncName`).
-    var name: String
-    /// What the user calls it here, when they named it; nil follows `name`.
-    var nickname: String? = nil
-    /// This device's id as that host knows it.
-    var deviceID: String
-    var deviceKey: Data
-    var pairedAt: Date
-    /// The address it was last reached at directly, as the connection
-    /// resolved it — never the relay's. The way back in on a launch where
-    /// the browser has not seen the host yet.
-    var lastAddress: String?
-    /// When a link last reached it — pairing, then every connection.
-    var lastSeen: Date? = nil
-
-    /// The name to show: the nickname, or the device's own.
-    var displayName: String {
-        nickname ?? name
-    }
-
-    /// Where to try when the browser has not found the host: the address
-    /// it last answered at.
-    var lastEndpoint: NWEndpoint? {
-        guard let lastAddress, let port = NWEndpoint.Port(rawValue: RemoteAccess.port) else { return nil }
-        return .hostPort(host: NWEndpoint.Host(lastAddress), port: port)
-    }
-}
-
 /// This device as a remote-access client: one id for every host it pairs
 /// with, made once, and the name it introduces itself by.
 enum RemoteDeviceIdentity {
@@ -89,19 +54,22 @@ enum RemoteDeviceIdentity {
     }
 }
 
-/// The paired hosts, in one file in the app's own container: 0600, and on
-/// the device under data protection until the first unlock — a tab that
-/// reconnects in the background after a reboot-and-unlock still reads it. Read from the transport's queue as well as the main
-/// actor, so every access goes through the lock; `didChange` tells the
-/// interface.
+/// The paired hosts (`PairedHostFile`), in the app's Application Support:
+/// 0600, and on the device under data protection until the first unlock.
+/// Read from the transport's queue as well as the main actor; `didChange`
+/// tells the interface. `ighostvt-cli pair` writes the same file, and the
+/// cache (`PairedHostCache`) brings that in as it happens — announced once,
+/// and never for a write of this process's own.
 enum PairedRemoteHostStore {
     static let didChange = Notification.Name("wiki.qaq.ighostvt.pairedRemoteHostsDidChange")
 
-    private static let lock = NSLock()
-    private nonisolated(unsafe) static var cache: [PairedRemoteHost]?
+    private static let file = PairedHostCache(url: fileURL) {
+        AppLog.info(.transport, "paired hosts changed on disk")
+        notify()
+    }
 
     static var hosts: [PairedRemoteHost] {
-        lock.withLock { loadedLocked() }
+        file.hosts
     }
 
     static func host(id: String) -> PairedRemoteHost? {
@@ -109,14 +77,11 @@ enum PairedRemoteHostStore {
     }
 
     static func save(_ host: PairedRemoteHost) {
-        lock.withLock {
-            var hosts = loadedLocked()
+        modify { hosts in
             hosts.removeAll { $0.id == host.id }
             hosts.append(host)
-            hosts.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-            writeLocked(hosts)
+            return true
         }
-        notify()
     }
 
     /// The user named the host; nil or blank goes back to its own name.
@@ -133,28 +98,22 @@ enum PairedRemoteHostStore {
     }
 
     private static func update(_ id: String, _ change: (inout PairedRemoteHost) -> Void) {
-        let changed = lock.withLock { () -> Bool in
-            var hosts = loadedLocked()
+        modify { hosts in
             guard let index = hosts.firstIndex(where: { $0.id == id }) else { return false }
             var host = hosts[index]
             change(&host)
             guard host != hosts[index] else { return false }
             hosts[index] = host
-            writeLocked(hosts)
             return true
-        }
-        if changed {
-            notify()
         }
     }
 
     static func remove(id: String) {
-        lock.withLock {
-            var hosts = loadedLocked()
+        modify { hosts in
+            let count = hosts.count
             hosts.removeAll { $0.id == id }
-            writeLocked(hosts)
+            return hosts.count != count
         }
-        notify()
     }
 
     /// The link reached the host: the address that answered, and when — kept up to date on every connection for a
@@ -163,15 +122,15 @@ enum PairedRemoteHostStore {
     /// as the host's it would send every later direct attempt there.
     static func noteReached(_ connection: NWConnection, forHostID id: String, viaRelay: Bool) {
         let address = viaRelay ? nil : rememberedAddress(of: connection, hostID: id)
-        lock.withLock {
-            var hosts = loadedLocked()
-            guard let index = hosts.firstIndex(where: { $0.id == id }) else { return }
+        // Only the interface follows a host; a time is no change to tell.
+        modify(announce: false) { hosts in
+            guard let index = hosts.firstIndex(where: { $0.id == id }) else { return false }
             var host = hosts[index]
             host.lastAddress = address ?? host.lastAddress
             host.lastSeen = Date()
-            guard host != hosts[index] else { return }
+            guard host != hosts[index] else { return false }
             hosts[index] = host
-            writeLocked(hosts)
+            return true
         }
     }
 
@@ -193,44 +152,19 @@ enum PairedRemoteHostStore {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         #if targetEnvironment(macCatalyst)
             // Unsandboxed on the Mac: Application Support is the user's own.
-            return base.appendingPathComponent("iGhostVT/RemoteHosts.json")
+            return base.appendingPathComponent("iGhostVT/" + PairedHostFile.fileName)
         #else
-            return base.appendingPathComponent("RemoteHosts.json")
+            return base.appendingPathComponent(PairedHostFile.fileName)
         #endif
     }
 
-    private static func loadedLocked() -> [PairedRemoteHost] {
-        if let cache {
-            return cache
-        }
-        var loaded = (try? Data(contentsOf: fileURL))
-            .flatMap { try? JSONDecoder().decode([PairedRemoteHost].self, from: $0) } ?? []
-        // Earlier builds kept whatever the connection resolved, IPv6
-        // included; only an IPv4 address is kept. The next connection
-        // records the right one.
-        for index in loaded.indices {
-            if let address = loaded[index].lastAddress, IPv4Address(address) == nil {
-                loaded[index].lastAddress = nil
-            }
-        }
-        cache = loaded
-        return loaded
-    }
-
-    private static func writeLocked(_ hosts: [PairedRemoteHost]) {
-        cache = hosts
-        let url = fileURL
-        do {
-            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-            let data = try JSONEncoder().encode(hosts)
-            #if targetEnvironment(macCatalyst)
-                try data.write(to: url, options: .atomic)
-            #else
-                try data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
-            #endif
-            chmod(url.path, 0o600)
-        } catch {
-            AppLog.error(.transport, "could not save paired hosts: \(error)")
+    private static func modify(announce: Bool = true, _ change: (inout [PairedRemoteHost]) -> Bool) {
+        let url = file.url
+        let changed = file.modify(failed: {
+            AppLog.error(.transport, "could not save paired hosts to \(url.path)")
+        }, change)
+        if changed, announce {
+            notify()
         }
     }
 

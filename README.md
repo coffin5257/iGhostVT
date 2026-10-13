@@ -72,6 +72,16 @@ ighostvt-cli kill 1
 
 On a Mac the tool is `/Applications/iGhostVT.app/Contents/MacOS/ighostvt-cli`.
 
+The same commands work on a paired device. Name it with `--host` (or set `IGHOSTVT_HOST`): the command line uses the devices iGhostVT is paired with, and a device it pairs with shows up in iGhostVT too.
+
+```sh
+ighostvt-cli hosts                       # the paired devices
+ighostvt-cli hosts --nearby              # devices offering remote access nearby or at the relay
+ighostvt-cli pair my-mac                 # pair, with the code `ighostvt-cli remote pair` shows there
+ighostvt-cli --host my-mac list
+ighostvt-cli --host my-mac send 1 text "make test" key Enter
+```
+
 ## Build from Source
 
 ```sh

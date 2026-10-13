@@ -27,13 +27,27 @@ enum CLIError: Error {
     case pairingClosed
     case relayStoreFailed(String)
     case relayUnsupported
+    case remoteAsRoot
+    case noPairedHosts
+    case hostNotPaired(String)
+    case hostAmbiguous(String, [String])
+    case hostNotFound(String, [String])
+    case hostUnreachable(String, [String])
+    case hostTimedOut(String)
+    case hostLost(String)
+    case hostVersion(String, String)
+    case hostStoreFailed(String)
+    case pairingFailed(String)
 
     var exitCode: Int32 {
         switch self {
         case .usage: 64
         case .daemonUnreachable, .timedOut, .versionMismatch, .relayUnsupported: 69
-        case .runAsRoot: 77
+        case .hostUnreachable, .hostTimedOut, .hostLost, .hostVersion: 69
+        case .runAsRoot, .remoteAsRoot: 77
+        case .noPairedHosts, .hostNotPaired, .hostAmbiguous, .hostNotFound: 64
         case .refused, .sessionLingered, .remoteAccessOff, .remoteAccessStuck, .pairingClosed, .relayStoreFailed: 1
+        case .hostStoreFailed, .pairingFailed: 1
         }
     }
 
@@ -78,6 +92,33 @@ enum CLIError: Error {
             return "Unable to write \(path)."
         case .relayUnsupported:
             return "On this device, import the relay file in iGhostVT Settings ▸ Remote Access."
+        case .remoteAsRoot:
+            return "Paired hosts belong to the user iGhostVT runs as, not to root. Run this as that user."
+        case .noPairedHosts:
+            return "This device is not paired with any host. Pair with `ighostvt-cli pair <host>`, or in iGhostVT Settings ▸ Remote Access."
+        case let .hostNotPaired(selector):
+            return "No paired host named \(selector). Run `ighostvt-cli hosts` to see them."
+        case let .hostAmbiguous(selector, matches):
+            return "More than one host matches \(selector): \(matches.joined(separator: ", ")). Name it by its id."
+        case let .hostNotFound(selector, found):
+            if found.isEmpty {
+                return "No host offering remote access was found on this network or at the relay."
+            }
+            return "No host named \(selector) was found. Found: \(found.joined(separator: ", "))."
+        case let .hostUnreachable(name, reasons):
+            let detail = reasons.isEmpty ? "" : " (" + reasons.joined(separator: "; ") + ")"
+            return "Unable to reach \(name). Check that remote access is on there, and that this device is on the same network or uses the same relay.\(detail)"
+        case let .hostTimedOut(name):
+            return "\(name) did not respond in time. Try again."
+        case let .hostLost(name):
+            return "The connection to \(name) was lost. Try again."
+        case let .hostVersion(name, theirs):
+            let line = theirs.isEmpty ? "an older iGhostVT" : "iGhostVT \(RemoteAccess.lineDescription(theirs))"
+            return "\(name) runs \(line), and this device runs \(RemoteAccess.lineDescription(RemoteAccess.appVersion)). Update both to the same version."
+        case let .hostStoreFailed(path):
+            return "Unable to write \(path)."
+        case let .pairingFailed(message):
+            return message
         }
     }
 }
@@ -107,13 +148,30 @@ struct SessionSummary {
     }
 }
 
+/// Where a command's requests go: this device's daemon (`DaemonClient`),
+/// or a paired host's through its `ighostvtd-remote` (`RemoteDaemonClient`).
+/// Both take the same dictionaries and answer the same way, so a command
+/// is written once for either.
+protocol DaemonRequester: AnyObject {
+    @discardableResult
+    func request(_ operation: iGhostVTOperation, _ fill: (xpc_object_t) -> Void) throws -> xpc_object_t
+    func cancel()
+}
+
+extension DaemonRequester {
+    @discardableResult
+    func request(_ operation: iGhostVTOperation) throws -> xpc_object_t {
+        try request(operation) { _ in }
+    }
+}
+
 /// One connection to `ighostvtd`, used for a single command and closed.
 ///
 /// Requests are synchronous and made from the main thread — never from
 /// `queue`, which is where libxpc delivers the replies they wait for. The
 /// CLI attaches to nothing and so receives no events; a session's output
 /// reaches it only as the replay a `snapshotSession` reply carries.
-final class DaemonClient {
+final class DaemonClient: DaemonRequester {
     private static let requestTimeout: TimeInterval = 6
 
     private let queue = DispatchQueue(label: "wiki.qaq.ighostvt.cli.xpc")
@@ -157,15 +215,9 @@ final class DaemonClient {
     /// Sends one request and returns its reply. Bounded: a daemon that has
     /// wedged must not hang the shell that ran this.
     @discardableResult
-    func request(
-        _ operation: iGhostVTOperation,
-        _ fill: (xpc_object_t) -> Void = { _ in },
-    ) throws -> xpc_object_t {
+    func request(_ operation: iGhostVTOperation, _ fill: (xpc_object_t) -> Void) throws -> xpc_object_t {
         guard let connection else { throw CLIError.daemonUnreachable }
-        let message = xpc_dictionary_create(nil, nil, 0)
-        xpc_dictionary_set_uint64(message, iGhostVTWireKey.version, iGhostVTProtocol.version)
-        xpc_dictionary_set_uint64(message, iGhostVTWireKey.operation, operation.rawValue)
-        fill(message)
+        let message = Self.message(operation, fill)
 
         let done = DispatchSemaphore(value: 0)
         var received: xpc_object_t?
@@ -179,18 +231,37 @@ final class DaemonClient {
         guard let reply = received, xpc_get_type(reply) == iGhostVTXPC.typeDictionary else {
             throw CLIError.daemonUnreachable
         }
+        return try Self.checked(reply, unreachable: .daemonUnreachable, versionMismatch: .versionMismatch)
+    }
+
+    /// The reply, if it says success; the error it stands for otherwise.
+    static func checked(
+        _ reply: xpc_object_t,
+        unreachable: CLIError,
+        versionMismatch: @autoclosure () -> CLIError,
+    ) throws -> xpc_object_t {
         guard xpc_dictionary_get_uint64(reply, iGhostVTWireKey.version) == iGhostVTProtocol.version,
               let code = iGhostVTReplyCode(rawValue: xpc_dictionary_get_int64(reply, iGhostVTWireKey.code))
         else {
-            throw CLIError.daemonUnreachable
+            throw unreachable
         }
         guard code == .success else {
             if code == .unsupportedVersion {
-                throw CLIError.versionMismatch
+                throw versionMismatch()
             }
-            throw CLIError.refused(code, Self.string(reply, iGhostVTWireKey.errorMessage))
+            throw CLIError.refused(code, string(reply, iGhostVTWireKey.errorMessage))
         }
         return reply
+    }
+
+    /// A request as both clients send it: the protocol version and the
+    /// operation, then whatever `fill` adds.
+    static func message(_ operation: iGhostVTOperation, _ fill: (xpc_object_t) -> Void) -> xpc_object_t {
+        let message = xpc_dictionary_create(nil, nil, 0)
+        xpc_dictionary_set_uint64(message, iGhostVTWireKey.version, iGhostVTProtocol.version)
+        xpc_dictionary_set_uint64(message, iGhostVTWireKey.operation, operation.rawValue)
+        fill(message)
+        return message
     }
 
     // MARK: - Reply decoding
