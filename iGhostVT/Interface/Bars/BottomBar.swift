@@ -42,6 +42,9 @@ struct BottomBar: View {
             .padding(.top, DS.Padding.s)
             .bottomScreenMargin(DS.Padding.xs, minimum: DS.Padding.l)
         }
+        .overlayPreferenceValue(SwitcherButtonBounds.self) { anchor in
+            GeometryReader { proxy in countBadge(proxy, anchor) }
+        }
         .buttonStyle(.borderless)
         .foregroundColor(.primary)
         .background(WindowReader(window: $window))
@@ -89,26 +92,35 @@ struct BottomBar: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Circle())
                 .barGlass(in: Circle())
-                // Over the glass, not in it: as content of the glass the
-                // badge was cut to its circle whenever the glass changed
-                // shape — a press, or the capsule beside it melting into
-                // it on iOS 26.
-                .overlay(alignment: .topTrailing) {
-                    if tabManager.tabs.count > 1 {
-                        Text("\(tabManager.tabs.count)")
-                            .font(DS.Font.captionEmphasis)
-                            .padding(DS.Padding.xs)
-                            .background(Color.accentColor, in: Circle())
-                            .foregroundColor(.white)
-                            .offset(x: 2, y: 2)
-                            // The badge is the button's value, spelled out
-                            // below; read as art it is a bare number.
-                            .accessibilityHidden(true)
-                    }
-                }
         }
+        .anchorPreference(key: SwitcherButtonBounds.self, value: .bounds) { $0 }
         .accessibilityLabel("Show All Tabs")
         .accessibilityValue(tabCountValue)
+    }
+
+    /// The tab count, pinned to the switcher button's corner from outside
+    /// the glass container. Anywhere inside it — in the button's label, or
+    /// over the button — iOS 26 drew the container's glass on top, and the
+    /// badge showed as a blue sliver behind the lens.
+    private func countBadge(_ proxy: GeometryProxy, _ anchor: Anchor<CGRect>?) -> some View {
+        ZStack(alignment: .topLeading) {
+            if let anchor, tabManager.tabs.count > 1 {
+                let frame = proxy[anchor]
+                Text("\(tabManager.tabs.count)")
+                    .font(DS.Font.captionEmphasis)
+                    .padding(DS.Padding.xs)
+                    .background(Color.accentColor, in: Circle())
+                    .foregroundColor(.white)
+                    .fixedSize()
+                    .frame(width: 0, height: 0, alignment: .topTrailing)
+                    .offset(x: frame.maxX + 2, y: frame.minY + 2)
+                    // The badge is the button's value, spelled out
+                    // below; read as art it is a bare number.
+                    .accessibilityHidden(true)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .allowsHitTesting(false)
     }
 
     /// What the count badge says, as words — and said whether or not the
@@ -118,6 +130,15 @@ struct BottomBar: View {
             NSLocalizedString("%lld Tabs", comment: "Count of open tabs, as a heading"),
             tabManager.tabs.count,
         )
+    }
+}
+
+/// Where the switcher button is, for the badge drawn outside the glass.
+private struct SwitcherButtonBounds: PreferenceKey {
+    static let defaultValue: Anchor<CGRect>? = nil
+
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        value = value ?? nextValue()
     }
 }
 
