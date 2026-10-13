@@ -82,6 +82,7 @@ struct BottomBar: View {
                 .barGlass(in: Circle())
         }
         .takesNewTabRows(newTabRows, from: tabManager)
+        .iOS15MenuKeepsLabelSize()
         .accessibilityLabel("Tab Menu")
     }
 
@@ -262,5 +263,24 @@ private struct TitleCapsuleLabel: View {
         .accessibilityElement(children: .combine)
         .padding(.horizontal, DS.Padding.l)
         .frame(maxWidth: .infinity, minHeight: 44)
+    }
+}
+
+private extension View {
+    /// iOS 15's `Menu` can come back from a re-render (typing into the
+    /// terminal was enough) taking all the height it is offered instead of
+    /// its label's. Under the keyboard the bar is offered most of the
+    /// window: the ⋯ stretched to it, the bar's inset grew past the
+    /// keyboard's, the terminal's bottom edge rose 52 pt above the keys,
+    /// and SwiftUI lifted the whole window's content 20 pt, under the
+    /// status bar, to fit it. There the menu is pinned to its label's
+    /// size; later systems keep it at its label already and are left alone.
+    @ViewBuilder
+    func iOS15MenuKeepsLabelSize() -> some View {
+        if #available(iOS 16.0, *) {
+            self
+        } else {
+            frame(width: 44, height: 44)
+        }
     }
 }
