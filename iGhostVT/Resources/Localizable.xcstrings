@@ -2454,13 +2454,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "键盘辅助键"
+            "value" : "辅助键"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "鍵盤輔助鍵"
+            "value" : "輔助鍵"
           }
         }
       }
