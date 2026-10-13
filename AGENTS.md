@@ -1548,6 +1548,12 @@ Gotchas that bit us:
   staged bundle's `LSMinimumSystemVersion` to 13.0, since a Catalyst app built
   for iOS 15 otherwise advertises macOS 12, where none of this exists and the
   terminal would simply never connect.
+- **On iOS 15 a SwiftUI `Menu` in the phone's bottom bar needs a fixed
+  frame.** After a re-render it can take every point it is offered, and
+  under the keyboard the bar's inset is offered most of the window: the bar
+  grew to 320 pt, the terminal ended 52 pt above the keys, and SwiftUI moved
+  the whole window up 20 pt to fit, the first line under the status bar
+  (`BottomBar.iOS15MenuKeepsLabelSize`). iOS 16 and later are left alone.
 
 - **The PTY's winsize must be the *last* grid the surface reported, and
   only the relay's record of that grid may ever be re-sent.** Reports come
