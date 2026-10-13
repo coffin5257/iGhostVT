@@ -26,8 +26,7 @@ struct SettingsSheet: View {
         NavigationView {
             Form {
                 AppearanceSettingsSection()
-                TerminalSettingsSection()
-                RemoteAccessSettingsSection()
+                SessionSettingsSection()
                 KeyboardSettingsSection()
                 AboutSettingsSection()
             }

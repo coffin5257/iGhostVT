@@ -6,11 +6,16 @@
 import SwiftUI
 
 /// Whether the interface follows the system's light or dark setting, then
-/// the two theme slots, light and dark; each slot opens the catalog list.
-/// The accent is the theme's (`InterfaceAccent`).
+/// the two theme slots, light and dark — each opens the catalog list — and
+/// the size a new terminal opens at. The accent is the theme's
+/// (`InterfaceAccent`). The interface's own text size is the system's here
+/// — Dynamic Type — and only the Mac, where Catalyst ignores it, has a
+/// stepper for it.
 struct AppearanceSettingsSection: View {
     @ObservedObject private var theme = AppTheme.shared
     @AppStorage(AppearancePreference.key) private var appearance = AppearancePreference.system.rawValue
+    /// Read by `TerminalTab` when a surface is made; open tabs keep theirs.
+    @AppStorage(TerminalFontSize.key) private var terminalFontSize = TerminalFontSize.default
 
     private var appearanceTitle: String {
         (AppearancePreference(rawValue: appearance) ?? .system).title
@@ -67,13 +72,25 @@ struct AppearanceSettingsSection: View {
             }
             .accessibilityLabel("Dark Theme")
             .accessibilityValue(ThemeSlot.dark.label(in: theme.selection))
+            Stepper(value: $terminalFontSize, in: TerminalFontSize.range) {
+                SettingsValueRow(title: "Text Size", value: fontSizeDescription)
+            }
+            .accessibilityLabel("Text Size")
+            .accessibilityValue(fontSizeDescription)
         } header: {
             Text("Appearance")
                 .font(DS.Font.caption)
         } footer: {
-            Text("Themes come from the Ghostty theme catalog and apply to every tab in every window.")
+            Text("Themes come from the Ghostty theme catalog. Text size applies to new tabs.")
                 .font(DS.Font.detail)
         }
+    }
+
+    private var fontSizeDescription: String {
+        String.localizedStringWithFormat(
+            NSLocalizedString("%lld pt", comment: "A font size in points"),
+            terminalFontSize,
+        )
     }
 }
 

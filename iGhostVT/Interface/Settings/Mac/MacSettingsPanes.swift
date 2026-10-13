@@ -94,8 +94,8 @@ import SwiftUI
                 } details: {
                     MacSettingsNote(
                         """
-                        New Session at Launch opens a session when the app starts \
-                        with nothing to resume. With it off, the app opens with no tabs.
+                        New Session at Launch opens a shell on this Mac when \
+                        the app starts with nothing to resume.
                         """,
                     )
                 }
@@ -170,14 +170,14 @@ import SwiftUI
         }
 
         private var recentDirectoriesRow: some View {
-            MacSettingsRow("Frequent Directories") {
-                MacCheckbox(String(localized: "Remember Directories"), isOn: $recents.isEnabled)
+            MacSettingsRow("New Tab") {
+                MacCheckbox(String(localized: "Recent Directories"), isOn: $recents.isEnabled)
             } details: {
                 MacSettingsNote(
                     """
-                    New Tab offers the directories your terminals are in, then \
-                    the ones they have been in before. Turning this off forgets \
-                    that second list and stops adding to it.
+                    Recent Directories lets New Tab offer the directories your \
+                    terminals have been in, on this Mac and on each paired \
+                    device. Turning it off forgets them.
                     """,
                 )
             }

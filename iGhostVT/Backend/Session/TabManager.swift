@@ -86,7 +86,8 @@ final class TabManager: ObservableObject {
     /// `isOnlyWindow` is a window the app opened with no other terminal
     /// window up — a launch, or the first window back after the last one
     /// closed. Its fresh tab follows `SessionLaunch`; a window opened beside
-    /// another was asked for and always gets one.
+    /// another was asked for and always gets one. Either is a local shell;
+    /// Ghost Remote opens none.
     ///
     /// Called by the scene delegate as the window connects, before anything
     /// else can add a tab.
@@ -95,15 +96,17 @@ final class TabManager: ObservableObject {
             openTab(attachingTo: movedSessionID)
             return
         }
-        let opensFreshTab = !isOnlyWindow || SessionLaunch.opensNewSession
         reopenRemoteTabs()
+        // Ghost Remote's fresh tab is a shell on another device, which a
+        // launch never starts by itself; only a window opened beside
+        // another, which was asked for, gets one.
         if AppEdition.isRemoteOnly {
-            if tabs.isEmpty, opensFreshTab, RemoteTabDefaults.preferredHostID != nil {
+            if !isOnlyWindow, tabs.isEmpty, RemoteTabDefaults.preferredHostID != nil {
                 newTab()
             }
-        } else {
-            resumeLeftovers(openingFreshTab: opensFreshTab)
+            return
         }
+        resumeLeftovers(openingFreshTab: !isOnlyWindow || SessionLaunch.opensNewSession)
     }
 
     /// The paired devices' terminals this app had open when it last went
@@ -138,8 +141,10 @@ final class TabManager: ObservableObject {
                 .union(tabs.compactMap(\.daemonSessionID))
             let resumable = resumable.filter { !held.contains($0) }
             guard !resumable.isEmpty else {
+                // `.home`, never `.activeTab`: the fresh tab is a shell on
+                // this device, whatever a reopened remote tab was in front.
                 if openingFreshTab, tabs.isEmpty {
-                    newTab()
+                    newTab(.home)
                 }
                 return
             }

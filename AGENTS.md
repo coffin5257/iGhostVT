@@ -219,8 +219,11 @@ files on replacement and destruction; old loose configs in shared tmp are
 left alone.
 
 Settings is a sheet on iPhone and iPad and a window of its own on the
-Mac. The sheet keeps to what people change: its Terminal section holds the
-text size, New Session at Launch and Remember Directories, Default Shell sits under Advanced, and there is no Interface
+Mac. The sheet keeps to what people change: its Appearance
+section holds the themes and the terminal's text size,
+Sessions holds New Session at Launch (not in Ghost Remote, whose launch
+never starts a shell on a paired device), Recent Directories and the
+Remote Access link, Default Shell sits under Advanced, and there is no Interface
 stepper — on iOS the chrome follows Dynamic Type, and a step stored by an
 older build is ignored there (`InterfaceTextSizeModifier`); the Mac keeps
 the stepper because Catalyst ignores Dynamic Type. The Mac's window
@@ -655,15 +658,18 @@ at terminate, in both editions), each taken back from whoever holds it.
 A question was tried in 1.4.17 (Restore / Discard) and taken out — the
 answer was always Restore.
 
-Opening is the other half, beside it in Settings ▸ Terminal (General on
+Opening is the other half, beside it in Settings ▸ Sessions (General on
 the Mac): New Session
 at Launch (`SessionLaunch`, on by default) decides whether a window with
 nothing to resume starts a shell. It applies to a window the app opens with
 no other terminal window up — a launch, or the first window back after the
 last closed — and never to one opened beside another (⌘N, New Window),
 which was asked for. Leftovers are resumed either way, and a window that
-opens with nothing shows `EmptyTabsView`. A remote-only build would turn it
-off; `populate(movingSession:isOnlyWindow:)` is the one place it is read.
+opens with nothing shows `EmptyTabsView`. The shell it starts is always
+this device's (`newTab(.home)`, whatever reopened remote tab is in front);
+Ghost Remote neither offers nor reads it — its launch opens nothing, and
+only a window opened beside another gets a terminal on the preferred
+device. `populate(movingSession:isOnlyWindow:)` is the one place it is read.
 
 The app never asks the daemon to exit. **The daemon is demand-launched on
 both platforms and leaves by itself**: `IOSupervisor` arms a timer whenever
@@ -1126,9 +1132,9 @@ most visited first — counts aged as zoxide does, every one shrunk by a
 tenth whenever they add up past five per slot, so last month's project
 sinks and this week's rises — and eight reach it, minus
 any directory an open tab is already offering and minus the home, which is
-the first row anyway. Remember Directories (Settings ▸ Terminal; General
-▸ Frequent Directories on the Mac) is the whole
-of its configuration: Remember Directories hides the group, stops recording
+the first row anyway. Recent Directories (Settings ▸ Sessions; General
+▸ New Tab on the Mac) is the whole
+of its configuration, local and remote lists alike: off, it hides the groups, stops recording
 *and* clears what is stored — a switch that says the app is not keeping this
 has to mean it, and there is no separate Clear. There is no sort choice: a
 Last Visited order was offered beside it and taken out. A remote
