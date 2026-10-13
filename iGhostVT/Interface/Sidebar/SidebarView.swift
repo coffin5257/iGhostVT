@@ -97,9 +97,6 @@ struct SidebarView: View {
                 .accessibilityAddTraits(.isHeader)
                 .padding(.leading, DS.Padding.s)
             Spacer()
-            Text(countLabel)
-                .font(DS.Font.caption)
-                .foregroundColor(.secondary)
             toggle
         }
         .padding(.horizontal, DS.Padding.s)
@@ -133,16 +130,6 @@ struct SidebarView: View {
         .padding(.vertical, DS.Padding.s)
         .frame(maxWidth: .infinity)
         .background(WindowDragRegion())
-    }
-
-    private var countLabel: String {
-        if tabManager.tabs.isEmpty {
-            return String(localized: "No Tabs")
-        }
-        return String.localizedStringWithFormat(
-            NSLocalizedString("%lld Tabs", comment: "Count of open tabs, as a heading"),
-            tabManager.tabs.count,
-        )
     }
 }
 
