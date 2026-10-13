@@ -43,6 +43,7 @@ final class HostSessionWatcher {
     func update(_ status: RemoteAccessStatus) {
         guard !status.isUnavailable else { return }
         RemoteHostDirectory.shared.noteOwnHostID(status.hostID)
+        SessionKeepAlive.noteRemoteAccess(status.isEnabled)
         setEnabled(status.isEnabled)
     }
 

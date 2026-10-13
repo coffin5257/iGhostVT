@@ -15,6 +15,8 @@ struct SessionSettingsSection: View {
     @ObservedObject private var recents = RecentDirectoryStore.shared
     /// Read by AppDelegate when the app quits; see `SessionKeepAlive`.
     @AppStorage(SessionKeepAlive.key) private var keepAlive = true
+    /// Remote access holds Background Activities on (`SessionKeepAlive`).
+    @AppStorage(SessionKeepAlive.remoteAccessKey) private var heldByRemoteAccess = false
 
     var body: some View {
         Section {
@@ -23,7 +25,11 @@ struct SessionSettingsSection: View {
                 Toggle("Recent Directories", isOn: $recents.isEnabled)
             } else {
                 Toggle("Recent Directories", isOn: $recents.isEnabled)
-                Toggle("Background Activities", isOn: $keepAlive)
+                Toggle("Background Activities", isOn: Binding(
+                    get: { keepAlive || heldByRemoteAccess },
+                    set: { keepAlive = $0 },
+                ))
+                .disabled(heldByRemoteAccess)
                 remoteAccessLink
             }
         } header: {
@@ -31,8 +37,13 @@ struct SessionSettingsSection: View {
                 .font(DS.Font.caption)
         } footer: {
             if !AppEdition.isRemoteOnly {
-                Text("Background Activities keeps your terminals running. With it off, shells and the tasks they run end when the app quits.")
-                    .font(DS.Font.detail)
+                if heldByRemoteAccess {
+                    Text("Background Activities keeps your terminals running. It stays on while Remote Access is on, so paired devices can reach them.")
+                        .font(DS.Font.detail)
+                } else {
+                    Text("Background Activities keeps your terminals running. With it off, shells and the tasks they run end when the app quits.")
+                        .font(DS.Font.detail)
+                }
             }
         }
     }

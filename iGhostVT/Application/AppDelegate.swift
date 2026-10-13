@@ -153,11 +153,30 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 /// Background Activities. On by default: a shell surviving the app is the
 /// point of the daemon. Off is for a Mac (or a user) that wants ⌘Q to mean
 /// what it means in Terminal. Ghost Remote has no sessions of its own.
+///
+/// Remote access holds it on: a paired device reaches this one's
+/// terminals, and a quit that ended them would end what a device was
+/// using or meant to come back to. The switch shows on and cannot be
+/// turned off while remote access is on, and the choice stored under it
+/// waits until remote access goes off again.
 enum SessionKeepAlive {
     static let key = "Session.keepAlive"
+    /// The helper's remote-access switch as this app last heard it
+    /// (`HostSessionWatcher`, which every status read anywhere reaches),
+    /// so a quit decides without asking the daemon.
+    static let remoteAccessKey = "Session.remoteAccessOn"
 
     static var isEnabled: Bool {
-        UserDefaults.standard.object(forKey: key) as? Bool ?? true
+        isHeldByRemoteAccess || (UserDefaults.standard.object(forKey: key) as? Bool ?? true)
+    }
+
+    static var isHeldByRemoteAccess: Bool {
+        UserDefaults.standard.bool(forKey: remoteAccessKey)
+    }
+
+    static func noteRemoteAccess(_ isOn: Bool) {
+        guard isOn != isHeldByRemoteAccess else { return }
+        UserDefaults.standard.set(isOn, forKey: remoteAccessKey)
     }
 }
 

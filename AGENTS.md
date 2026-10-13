@@ -665,7 +665,12 @@ Activities on (`SessionKeepAlive`, the default) every session stays in the
 daemon, idle shells included, and with it off the shells this app's own
 tabs run on this device's daemon go (`TerminalTab.daemonSessionID`) —
 never a remote tab's session, and never one a paired device opened here
-or holds. The switch
+or holds. Remote access holds the switch on — shown on and greyed out,
+the stored choice back once remote access goes off — because a quit that
+ended this device's shells would end what a paired device was using; the
+app reads the helper's switch from the last `remoteStatus` it heard
+(`HostSessionWatcher` mirrors it into `SessionKeepAlive.remoteAccessKey`),
+so the quit asks the daemon nothing. The switch
 was taken out after 1.6.5 as Keep Sessions Running and came back under
 this name; Ghost Remote has none. The kills travel over one blocking
 one-shot connection (`XPCDaemonTransport.closeSessionsForQuit`) — not the

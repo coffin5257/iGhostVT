@@ -108,6 +108,7 @@ import SwiftUI
     struct MacCheckbox: View {
         let title: String
         @Binding var isOn: Bool
+        @Environment(\.isEnabled) private var isEnabled
 
         init(_ title: String, isOn: Binding<Bool>) {
             self.title = title
@@ -124,6 +125,8 @@ import SwiftUI
                         .foregroundColor(.primary)
                 }
                 .contentShape(Rectangle())
+                // Drawn by hand, so it dims by hand as AppKit's does.
+                .opacity(isEnabled ? 1 : 0.5)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text(verbatim: title))

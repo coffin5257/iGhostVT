@@ -4287,6 +4287,89 @@
         }
       }
     },
+    "Background Activities keeps your terminals running. It stays on while Remote Access is on, so paired devices can reach them." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تُبقي الأنشطة في الخلفية الطرفيات قيد التشغيل. وتبقى مفعّلة ما دام الوصول عن بُعد مفعّلًا، حتى تتمكن الأجهزة المقترنة من الوصول إليها."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrundaktivitäten halten deine Terminals am Laufen. Sie bleiben an, solange der Fernzugriff an ist, damit gekoppelte Geräte sie erreichen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background Activities keeps your terminals running. It stays on while Remote Access is on, so paired devices can reach them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La actividad en segundo plano mantiene tus terminales en ejecución. Sigue activada mientras el acceso remoto lo esté, para que los dispositivos enlazados puedan acceder a ellos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les activités en arrière-plan maintiennent vos terminaux en marche. Elles restent activées tant que l’accès à distance l’est, pour que les appareils jumelés puissent les atteindre."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’attività in background mantiene attivi i terminali. Resta attiva finché lo è l’accesso remoto, così i dispositivi abbinati possono raggiungerli."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バックグラウンドアクティビティを有効にすると、ターミナルは実行され続けます。リモートアクセスがオンの間はオンのままになり、ペアリングしたデバイスからアクセスできます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "백그라운드 활동을 켜면 터미널이 계속 실행됩니다. 원격 접근이 켜져 있는 동안에는 켜진 상태로 유지되어 페어링된 기기가 터미널에 접근할 수 있습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As atividades em segundo plano mantêm seus terminais em execução. Ficam ativadas enquanto o acesso remoto estiver ativado, para que os dispositivos pareados possam acessá-los."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фоновая активность сохраняет терминалы запущенными. Пока включён удалённый доступ, она остаётся включённой, чтобы сопряжённые устройства могли к ним подключиться."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoạt động nền giữ cho các terminal tiếp tục chạy. Tùy chọn này luôn bật khi Truy cập từ xa đang bật, để các thiết bị đã ghép đôi có thể truy cập chúng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用后台活动将会保持你的终端运行。远程访问开启期间它会保持开启，以便已配对的设备访问你的终端。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用背景活動將會保持你的終端機執行。遠端存取開啟期間它會保持開啟，以便已配對的裝置存取你的終端機。"
+          }
+        }
+      }
+    },
     "Background Activities keeps your terminals running. With it off, shells and the tasks they run end when the app quits." : {
       "extractionState" : "manual",
       "localizations" : {

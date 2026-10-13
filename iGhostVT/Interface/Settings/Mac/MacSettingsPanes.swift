@@ -83,6 +83,7 @@ import SwiftUI
 
         @AppStorage(SessionLaunch.key) private var opensNewSession = true
         @AppStorage(SessionKeepAlive.key) private var keepAlive = true
+        @AppStorage(SessionKeepAlive.remoteAccessKey) private var heldByRemoteAccess = false
         @ObservedObject private var agent = MacLaunchAgent.shared
         @ObservedObject private var recents = RecentDirectoryStore.shared
 
@@ -99,14 +100,28 @@ import SwiftUI
                         the app starts with nothing to resume.
                         """,
                     )
-                    MacCheckbox(String(localized: "Background Activities"), isOn: $keepAlive)
-                        .padding(.top, DS.Padding.s)
-                    MacSettingsNote(
-                        """
-                        Background Activities keeps your terminals running. With it \
-                        off, shells and the tasks they run end when the app quits.
-                        """,
-                    )
+                    MacCheckbox(String(localized: "Background Activities"), isOn: Binding(
+                        get: { keepAlive || heldByRemoteAccess },
+                        set: { keepAlive = $0 },
+                    ))
+                    .disabled(heldByRemoteAccess)
+                    .padding(.top, DS.Padding.s)
+                    if heldByRemoteAccess {
+                        MacSettingsNote(
+                            """
+                            Background Activities keeps your terminals running. It \
+                            stays on while Remote Access is on, so paired devices \
+                            can reach them.
+                            """,
+                        )
+                    } else {
+                        MacSettingsNote(
+                            """
+                            Background Activities keeps your terminals running. With it \
+                            off, shells and the tasks they run end when the app quits.
+                            """,
+                        )
+                    }
                 }
                 if agent.status != .unsupported {
                     MacSettingsRow("Terminal Helper") {
