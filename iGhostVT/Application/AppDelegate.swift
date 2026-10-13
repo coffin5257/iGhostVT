@@ -141,7 +141,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 /// paired device's terminals, a session the CLI started — and would rather
 /// see an empty window than a shell they did not ask for. A window opened
 /// beside another (⌘N, New Window) is a request for a terminal and gets one
-/// either way.
+/// either way. The shell is always this device's — a launch never opens one
+/// on a paired device — so Ghost Remote neither reads nor offers it.
 enum SessionLaunch {
     static let key = "Session.openAtLaunch"
 

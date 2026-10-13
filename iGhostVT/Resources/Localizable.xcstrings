@@ -12658,89 +12658,6 @@
         }
       }
     },
-    "Frequent Directories" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المجلدات الأكثر استخداماً"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Häufige Ordner"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Frequent Directories"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Directorios frecuentes"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dossiers fréquents"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Directory frequenti"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "よく使うディレクトリ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "자주 사용하는 디렉토리"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diretórios frequentes"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Часто используемые папки"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thư mục thường dùng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "常用目录"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "常用目錄"
-          }
-        }
-      }
-    },
     "General" : {
       "comment" : "The Mac settings window's first pane",
       "localizations" : {
@@ -19786,85 +19703,168 @@
         }
       }
     },
-    "New Session at Launch opens a session when the app starts with nothing to resume. With it off, the app opens with no tabs." : {
+    "New Session at Launch opens a shell on this Mac when the app starts with nothing to resume." : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يفتح خيار „جلسة جديدة عند التشغيل“ جلسة عند بدء التطبيق إذا لم يكن هناك ما يُستعاد. وعند تعطيله يُفتح التطبيق دون علامات تبويب."
+            "value" : "يفتح «جلسة جديدة عند التشغيل» صدفة على هذا الـ Mac عندما يبدأ التطبيق دون شيء لاستئنافه."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "„Neue Sitzung beim Start“ öffnet eine Sitzung, wenn die App startet und nichts wiederherzustellen ist. Ist die Option deaktiviert, öffnet sich die App ohne Tabs."
+            "value" : "„Neue Sitzung beim Start“ öffnet eine Shell auf diesem Mac, wenn die App ohne etwas zum Fortsetzen startet."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "New Session at Launch opens a session when the app starts with nothing to resume. With it off, the app opens with no tabs."
+            "value" : "New Session at Launch opens a shell on this Mac when the app starts with nothing to resume."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Nueva sesión al abrir” abre una sesión cuando la app se inicia y no hay nada que restaurar. Si está desactivada, la app se abre sin pestañas."
+            "value" : "«Nueva sesión al abrir» abre una shell en este Mac cuando la app se inicia sin nada que reanudar."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "« Nouvelle session au lancement » ouvre une session lorsque l’app démarre sans rien à restaurer. Désactivée, l’app s’ouvre sans onglet."
+            "value" : "« Nouvelle session au lancement » ouvre un shell sur ce Mac lorsque l’app démarre sans rien à reprendre."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Nuova sessione all’avvio” apre una sessione quando l’app si avvia senza nulla da ripristinare. Se è disattivata, l’app si apre senza schede."
+            "value" : "“Nuova sessione all’avvio” apre una shell su questo Mac quando l’app si avvia senza nulla da riprendere."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「起動時に新しいセッションを開く」がオンの場合、復元するものがなければApp起動時に新しいセッションを開きます。オフにすると、タブを開かずに起動します。"
+            "value" : "「起動時に新しいセッションを開く」は、再開するものがない状態でアプリが起動したときに、このMacでシェルを開きます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“실행 시 새 세션 열기”를 켜면 앱을 실행할 때 복원할 세션이 없으면 새 세션을 엽니다. 끄면 탭 없이 앱이 열립니다."
+            "value" : "‘실행 시 새 세션 열기’은 재개할 것이 없는 상태로 앱이 시작될 때 이 Mac에서 셸을 엽니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Nova sessão ao abrir” abre uma sessão quando o app é iniciado sem nada para restaurar. Desativada, o app abre sem abas."
+            "value" : "“Nova sessão ao abrir” abre um shell neste Mac quando o app inicia sem nada para retomar."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "«Новый сеанс при запуске» открывает сеанс, если при запуске приложения нечего восстановить. Если выключить, приложение откроется без вкладок."
+            "value" : "«Новый сеанс при запуске» открывает оболочку на этом Mac, если приложению нечего возобновить."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Mở phiên mới khi khởi chạy” mở một phiên khi ứng dụng khởi động mà không có gì để khôi phục. Khi tắt, ứng dụng mở ra mà không có tab nào."
+            "value" : "“Mở phiên mới khi khởi chạy” mở một shell trên máy Mac này khi ứng dụng khởi động mà không có gì để tiếp tục."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开启“启动时新建会话”后，如果启动应用时没有可恢复的会话，会新建一个。关闭后，应用启动时不打开任何标签页。"
+            "value" : "“启动时新建会话”会在 App 启动且没有可恢复的会话时，在这台 Mac 上打开一个 Shell。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "開啟「啟動時新增工作階段」後，如果啟動 App 時沒有可恢復的工作階段，會新增一個。關閉後，App 啟動時不開啟任何分頁。"
+            "value" : "「啟動時新增工作階段」會在 App 啟動且沒有可恢復的工作階段時，在這台 Mac 上開啟一個 Shell。"
+          }
+        }
+      }
+    },
+    "New Session at Launch starts a shell on this device when there is nothing to resume. Recent Directories lists where your terminals have been in New Tab." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يبدأ «جلسة جديدة عند التشغيل» صدفة على هذا الجهاز عندما لا يوجد ما يُستأنف. يعرض «المجلدات الأخيرة» في علامة التبويب الجديدة الأماكن التي كانت فيها طرفياتك."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Neue Sitzung beim Start“ startet eine Shell auf diesem Gerät, wenn nichts fortzusetzen ist. „Letzte Ordner“ zeigt unter „Neuer Tab“, wo deine Terminals waren."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Session at Launch starts a shell on this device when there is nothing to resume. Recent Directories lists where your terminals have been in New Tab."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Nueva sesión al abrir» inicia una shell en este dispositivo cuando no hay nada que reanudar. «Directorios recientes» muestra en Nueva pestaña dónde han estado tus terminales."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« Nouvelle session au lancement » démarre un shell sur cet appareil quand il n’y a rien à reprendre. « Dossiers récents » affiche dans Nouvel onglet les dossiers où vos terminaux sont allés."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Nuova sessione all’avvio” avvia una shell su questo dispositivo quando non c’è nulla da riprendere. “Directory recenti” mostra in Nuova scheda dove sono stati i tuoi terminali."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「起動時に新しいセッションを開く」は、再開するものがないときにこのデバイスでシェルを起動します。「最近のディレクトリ」は、ターミナルが使っていた場所を新規タブに表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘실행 시 새 세션 열기’은 재개할 것이 없을 때 이 기기에서 셸을 시작합니다. ‘최근 디렉토리’는 터미널이 머물렀던 위치를 새로운 탭에 표시합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Nova sessão ao abrir” inicia um shell neste dispositivo quando não há nada para retomar. “Diretórios recentes” mostra em Nova aba onde seus terminais estiveram."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Новый сеанс при запуске» запускает оболочку на этом устройстве, когда нечего возобновить. «Недавние папки» показывают в «Новой вкладке», где побывали ваши терминалы."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Mở phiên mới khi khởi chạy” khởi chạy một shell trên thiết bị này khi không có gì để tiếp tục. “Thư mục gần đây” hiển thị trong Tab mới những nơi terminal của bạn đã ở."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“启动时新建会话”会在没有可恢复的会话时，在本设备上启动一个 Shell。“最近目录”会在新建标签页中列出你的终端去过的目录。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「啟動時新增工作階段」會在沒有可恢復的工作階段時，在本裝置上啟動一個 Shell。「最近目錄」會在新增分頁中列出你的終端機去過的目錄。"
           }
         }
       }
@@ -19952,88 +19952,6 @@
         }
       }
     },
-    "New Tab offers the directories your terminals are in, then the ones they have been in before. Turning this off forgets that second list and stops adding to it." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يعرض علامة التبويب الجديدة المجلدات التي توجد فيها طرفياتك، ثم المجلدات التي كانت فيها من قبل. يؤدي إيقاف هذا الخيار إلى مسح القائمة الثانية والتوقف عن الإضافة إليها."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neuer Tab bietet die Ordner an, in denen deine Terminals gerade sind, dann die, in denen sie zuvor waren. Wenn du dies ausschaltest, wird diese zweite Liste gelöscht und nicht mehr ergänzt."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New Tab offers the directories your terminals are in, then the ones they have been in before. Turning this off forgets that second list and stops adding to it."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nueva pestaña ofrece las carpetas en las que están tus terminales y después aquellas en las que han estado. Al desactivarlo, esa segunda lista se borra y deja de ampliarse."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nouvel onglet propose les dossiers où se trouvent vos terminaux, puis ceux où ils sont déjà allés. Désactiver cette option efface cette seconde liste et cesse de la compléter."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nuova scheda propone le cartelle in cui si trovano i terminali, poi quelle in cui sono già stati. Disattivandolo, questo secondo elenco viene cancellato e non viene più aggiornato."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新規タブには、ターミナルが今いるディレクトリに続いて、これまでにいたディレクトリが表示されます。オフにすると後者のリストは消去され、記録もされなくなります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "새 탭은 터미널이 현재 있는 디렉터리와 이전에 있었던 디렉터리를 차례로 보여 줍니다. 끄면 이전 디렉터리 목록이 지워지고 더 이상 기록되지 않습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nova Aba oferece as pastas em que seus terminais estão e depois aquelas em que já estiveram. Desativar isso apaga essa segunda lista e para de adicionar a ela."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Новая вкладка предлагает папки, в которых сейчас находятся терминалы, а затем те, где они уже бывали. Если выключить, этот второй список будет удалён и больше не будет пополняться."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thẻ mới gợi ý các thư mục mà terminal đang ở, rồi đến các thư mục chúng từng ở. Tắt tùy chọn này sẽ xóa danh sách thứ hai và ngừng ghi thêm vào đó."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新建标签页会先列出终端当前所在的目录，再列出它们去过的目录。关闭后会清除后一份列表，并不再记录。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新增標籤頁會先列出終端機目前所在的目錄，再列出它們去過的目錄。關閉後會清除後一份列表，並不再記錄。"
-          }
-        }
-      }
-    },
     "New Tab on Device" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20070,7 +19988,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nuovo pannello sul dispositivo"
+            "value" : "Nuova scheda sul dispositivo"
           }
         },
         "ja" : {
@@ -20444,89 +20362,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新終端機以終端機大小開啟；已開啟的分頁會保留縮放後的大小。介面大小會縮放所有標籤和控制項。"
-          }
-        }
-      }
-    },
-    "New terminals open at this text size; a tab that is already open keeps the size it was zoomed to." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تُفتح الطرفيات الجديدة بحجم النص هذا؛ أما علامة التبويب المفتوحة مسبقاً فتحتفظ بالحجم الذي كُبِّرت إليه."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neue Terminals öffnen in dieser Textgröße; ein bereits geöffneter Tab behält die Größe, auf die er gezoomt wurde."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New terminals open at this text size; a tab that is already open keeps the size it was zoomed to."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los terminales nuevos se abren con este tamaño de texto; una pestaña ya abierta conserva el tamaño al que se amplió."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les nouveaux terminaux s’ouvrent à cette taille de texte ; un onglet déjà ouvert conserve la taille à laquelle il a été zoomé."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I nuovi terminali si aprono con questa dimensione del testo; una scheda già aperta mantiene la dimensione a cui è stata ingrandita."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新しいターミナルはこの文字サイズで開きます。すでに開いているタブは、ズームしたサイズのままです。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "새 터미널은 이 텍스트 크기로 열리며, 이미 열려 있는 탭은 확대한 크기를 유지합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Novos terminais são abertos com este tamanho de texto; uma aba já aberta mantém o tamanho para o qual foi ampliada."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Новые терминалы открываются с этим размером текста; уже открытая вкладка сохраняет размер, до которого её увеличили."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Terminal mới sẽ mở ở cỡ chữ này; tab đang mở vẫn giữ cỡ chữ đã phóng."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新终端以这个文字大小打开；已打开的标签页保持缩放后的大小。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新終端機以這個文字大小開啟；已開啟的分頁會保留縮放後的大小。"
           }
         }
       }
@@ -21735,7 +21570,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "변경한 구성은 새 탭에만 적용됩니다."
+            "value" : "변경한 구성은 새로운 탭에만 적용됩니다."
           }
         },
         "pt-BR" : {
@@ -22762,89 +22597,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已打開的終端機"
-          }
-        }
-      }
-    },
-    "Open terminals on another device of yours, or let your other devices open them here." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "افتح طرفيات على جهاز آخر لديك، أو اسمح لأجهزتك الأخرى بفتحها هنا."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Öffne Terminals auf einem anderen deiner Geräte oder lass deine anderen Geräte hier welche öffnen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open terminals on another device of yours, or let your other devices open them here."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre terminales en otro de tus dispositivos o deja que tus otros dispositivos los abran aquí."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvrez des terminaux sur un autre de vos appareils, ou laissez vos autres appareils en ouvrir ici."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apri terminali su un altro tuo dispositivo o consenti agli altri tuoi dispositivi di aprirli qui."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自分の別のデバイスでターミナルを開いたり、別のデバイスからこのデバイスで開いたりできます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "다른 나의 기기에서 터미널을 열거나, 다른 기기에서 이 기기의 터미널을 열도록 허용합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abra terminais em outro dispositivo seu ou deixe seus outros dispositivos abrirem aqui."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Открывайте терминалы на другом своем устройстве или разрешите другим устройствам открывать их здесь."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mở terminal trên thiết bị khác của bạn, hoặc cho phép các thiết bị khác mở terminal tại đây."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在你的其他设备上打开终端，或让你的其他设备在这里打开终端。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在你的其他裝置上開啟終端機，或讓你的其他裝置在這裡開啟終端機。"
           }
         }
       }
@@ -25078,6 +24830,255 @@
         }
       }
     },
+    "Recent Directories" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المجلدات الأخيرة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzte Ordner"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent Directories"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Directorios recientes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dossiers récents"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Directory recenti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近のディレクトリ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최근 디렉토리"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diretórios recentes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недавние папки"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thư mục gần đây"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近目录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近目錄"
+          }
+        }
+      }
+    },
+    "Recent Directories lets New Tab offer the directories your terminals have been in, on this Mac and on each paired device. Turning it off forgets them." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتيح «المجلدات الأخيرة» لعلامة التبويب الجديدة اقتراح المجلدات التي كانت فيها طرفياتك، على هذا الـ Mac وعلى كل جهاز مقترن. إيقافه يمحوها."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit „Letzte Ordner“ bietet „Neuer Tab“ die Ordner an, in denen deine Terminals waren – auf diesem Mac und auf jedem gekoppelten Gerät. Ausschalten vergisst sie."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent Directories lets New Tab offer the directories your terminals have been in, on this Mac and on each paired device. Turning it off forgets them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Directorios recientes» permite que Nueva pestaña ofrezca los directorios en los que han estado tus terminales, en este Mac y en cada dispositivo enlazado. Al desactivarlo se olvidan."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« Dossiers récents » permet à Nouvel onglet de proposer les dossiers où vos terminaux sont allés, sur ce Mac et sur chaque appareil jumelé. Le désactiver les oublie."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Directory recenti” consente a Nuova scheda di proporre le directory in cui sono stati i tuoi terminali, su questo Mac e su ogni dispositivo abbinato. Disattivandolo vengono dimenticate."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「最近のディレクトリ」をオンにすると、新規タブでターミナルが使っていたディレクトリを、このMacとペアリングした各デバイスについて提示します。オフにすると記録は消去されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘최근 디렉토리’를 켜면 새로운 탭에서 이 Mac과 페어링된 각 기기에서 터미널이 머물렀던 디렉토리를 제안합니다. 끄면 기록이 지워집니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Diretórios recentes” permite que Nova aba ofereça os diretórios em que seus terminais estiveram, neste Mac e em cada dispositivo pareado. Desativar esquece todos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Недавние папки» позволяет «Новой вкладке» предлагать папки, в которых были ваши терминалы, — на этом Mac и на каждом сопряжённом устройстве. Выключение стирает их."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Thư mục gần đây” cho phép Tab mới gợi ý các thư mục mà terminal của bạn đã ở, trên máy Mac này và trên từng thiết bị đã ghép đôi. Tắt đi sẽ xoá chúng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启“最近目录”后，新建标签页会列出你的终端去过的目录，包括这台 Mac 和每台已配对的设备。关闭后会清除这些记录。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟「最近目錄」後，新增分頁會列出你的終端機去過的目錄，包括這台 Mac 和每台已配對的裝置。關閉後會清除這些記錄。"
+          }
+        }
+      }
+    },
+    "Recent Directories lists where your terminals have been in New Tab." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يعرض «المجلدات الأخيرة» في علامة التبويب الجديدة الأماكن التي كانت فيها طرفياتك."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Letzte Ordner“ zeigt unter „Neuer Tab“, wo deine Terminals waren."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent Directories lists where your terminals have been in New Tab."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Directorios recientes» muestra en Nueva pestaña dónde han estado tus terminales."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« Dossiers récents » affiche dans Nouvel onglet les dossiers où vos terminaux sont allés."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Directory recenti” mostra in Nuova scheda dove sono stati i tuoi terminali."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「最近のディレクトリ」は、ターミナルが使っていた場所を新規タブに表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘최근 디렉토리’는 터미널이 머물렀던 위치를 새로운 탭에 표시합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Diretórios recentes” mostra em Nova aba onde seus terminais estiveram."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Недавние папки» показывают в «Новой вкладке», где побывали ваши терминалы."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Thư mục gần đây” hiển thị trong Tab mới những nơi terminal của bạn đã ở."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“最近目录”会在新建标签页中列出你的终端去过的目录。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「最近目錄」會在新增分頁中列出你的終端機去過的目錄。"
+          }
+        }
+      }
+    },
     "Refresh" : {
       "localizations" : {
         "ar" : {
@@ -25322,171 +25323,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "中繼已在使用"
-          }
-        }
-      }
-    },
-    "Remember Directories" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تذكّر المجلدات"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ordner merken"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remember Directories"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recordar directorios"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mémoriser les dossiers"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ricorda le directory"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ディレクトリを記憶"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "디렉토리 기억"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lembrar diretórios"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Запоминать папки"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ghi nhớ thư mục"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "记住目录"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "記住目錄"
-          }
-        }
-      }
-    },
-    "Remember Directories lets New Tab offer the directories your terminals have been in before. With it off, that list is forgotten and nothing is added to it." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يتيح خيار „تذكّر المجلدات“ لقائمة „علامة تبويب جديدة“ أن تعرض المجلدات التي زارتها طرفياتك من قبل. وعند تعطيله تُنسى تلك القائمة ولا يُضاف إليها شيء."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mit „Ordner merken“ bietet „Neuer Tab“ die Ordner an, in denen deine Terminals schon waren. Ist die Option deaktiviert, wird diese Liste vergessen und nichts mehr hinzugefügt."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remember Directories lets New Tab offer the directories your terminals have been in before. With it off, that list is forgotten and nothing is added to it."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Con «Recordar directorios», Nueva pestaña ofrece los directorios en los que han estado tus terminales. Si se desactiva, esa lista se olvida y no se añade nada más."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avec « Mémoriser les dossiers », Nouvel onglet propose les dossiers où vos terminaux sont déjà allés. Désactivée, cette liste est oubliée et plus rien n’y est ajouté."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Con «Ricorda le directory», Nuova scheda propone le directory in cui sono già stati i tuoi terminali. Se disattivata, l’elenco viene dimenticato e non vi si aggiunge più nulla."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「ディレクトリを記憶」をオンにすると、新規タブにターミナルがこれまでいたディレクトリが表示されます。オフにすると、その一覧は消去され、以後は記録されません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "디렉토리 기억을 켜면 새로운 탭에서 터미널이 이전에 있었던 디렉토리를 제안합니다. 끄면 그 목록은 지워지고 더 이상 추가되지 않습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Com “Lembrar diretórios”, Nova aba oferece os diretórios em que seus terminais já estiveram. Desativado, essa lista é esquecida e nada mais é adicionado a ela."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«Запоминать папки» позволяет пункту «Новая вкладка» предлагать папки, в которых уже бывали ваши терминалы. Если выключить, этот список забывается и больше не пополняется."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ghi nhớ thư mục cho phép Tab mới gợi ý các thư mục terminal của bạn từng ở. Khi tắt, danh sách đó bị xóa và không ghi thêm gì nữa."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开启“记住目录”后，新建标签页会列出终端去过的目录。关闭后会清除这份列表，并不再记录。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟「記住目錄」後，新增分頁會列出終端機去過的目錄。關閉後會清除這份列表，並不再記錄。"
           }
         }
       }
@@ -35291,6 +35127,89 @@
         }
       }
     },
+    "Themes come from the Ghostty theme catalog. Text size applies to new tabs." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "السمات من كتالوج سمات Ghostty. يُطبَّق حجم النص على علامات التبويب الجديدة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Themes stammen aus dem Ghostty-Themenkatalog. Die Textgröße gilt für neue Tabs."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Themes come from the Ghostty theme catalog. Text size applies to new tabs."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los temas vienen del catálogo de temas de Ghostty. El tamaño del texto se aplica a las pestañas nuevas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les thèmes proviennent du catalogue de thèmes Ghostty. La taille du texte s’applique aux nouveaux onglets."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I temi provengono dal catalogo di temi di Ghostty. La dimensione del testo si applica alle nuove schede."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テーマはGhosttyのテーマカタログから提供されます。文字サイズは新しいタブに適用されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "테마는 Ghostty 테마 카탈로그에서 가져옵니다. 텍스트 크기는 새로운 탭에 적용됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os temas vêm do catálogo de temas do Ghostty. O tamanho do texto vale para novas abas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Темы берутся из каталога тем Ghostty. Размер текста применяется к новым вкладкам."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề lấy từ danh mục chủ đề của Ghostty. Cỡ chữ áp dụng cho các tab mới."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主题来自 Ghostty 主题目录。文字大小作用于新标签页。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主題來自 Ghostty 主題目錄。文字大小套用於新分頁。"
+          }
+        }
+      }
+    },
     "This closes all tabs and stops everything running in them." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -40875,7 +40794,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Puoi aprire terminali su di esso da Nuovo pannello."
+            "value" : "Puoi aprire terminali su di esso da Nuova scheda."
           }
         },
         "ja" : {
