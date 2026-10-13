@@ -71,7 +71,10 @@ struct TabSwitcherView: View {
     }
 
     private var tabCountLabel: String {
-        String.localizedStringWithFormat(
+        if tabManager.tabs.isEmpty {
+            return String(localized: "No Tabs")
+        }
+        return String.localizedStringWithFormat(
             NSLocalizedString("%lld Tabs", comment: "Count of open tabs, as a heading"),
             tabManager.tabs.count,
         )
