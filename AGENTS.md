@@ -53,7 +53,7 @@ which launchd never sized — so a session's buffers cannot jetsam the daemon.
   for exactly this reason.
 - Depends on the **released**
   [libghostty-spm](https://github.com/Lakr233/libghostty-spm) package
-  (`upToNextMajor` from 2.2.2026101003, Ghostty 35a81a98 on Zig 0.16). 2.x
+  (`upToNextMajor` from 2.2.2026101301, Ghostty 1e9e14af on Zig 0.16). 2.x
   selects text inline on iOS — a long press puts handles and the edit menu
   on the terminal itself — and removed the long-press hand-off
   (`onTextSelectionRequest`) the app's own selection sheet hung off, so the
@@ -86,7 +86,16 @@ which launchd never sized — so a session's buffers cannot jetsam the daemon.
   `super.presses…` is safe. 2.2.2026101003 puts the viewport back where
   a touch selection began — the bottom, when it began there — once the
   selection goes, if a drag past the edge scrolled it into history and
-  the user has not scrolled since. 2.2.2026101001 draws a symbol key of
+  the user has not scrolled since. 2.2.2026101301 (Ghostty 1e9e14af,
+  binary `upstream.1e9e14af5df1-2`) stops a hardware key typing twice
+  under an input method that commits late (Korean: every jamo after the
+  first late claim was replayed raw as well as committed), stops the
+  cursor timer redrawing a surface every 600 ms while it is unfocused or
+  not blinking, ships its touch-menu titles as compiled
+  `.lproj/Localizable.strings` instead of a string catalog
+  (`CFBundleAllowMixedLocalizations` still decides their language), and
+  adds `selectionRegion()` and a search delegate the app does not use.
+  2.2.2026101001 draws a symbol key of
   the accessory bar as all of its text on one line, in a capsule that
   widens to fit (`TerminalInputAccessoryItem.buttonTitle`, which the
   app's key editor reads too), and takes a presentation for it:
