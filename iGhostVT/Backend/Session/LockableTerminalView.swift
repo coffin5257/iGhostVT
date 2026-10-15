@@ -415,21 +415,49 @@ final class LockableTerminalView: TerminalView {
             routingPaste(super.touchMenuItems(for: context))
         }
 
-        /// A selection that is a web link, and nothing else, gets Open Link
-        /// after Copy.
+        /// A selection over more than one row gets Copy as One Line right
+        /// after Copy, and one that is a web link, and nothing else, gets
+        /// Open Link after that.
         override func touchSelectionMenuItems(for context: TerminalTouchSelectionMenuContext) -> [UIMenuElement] {
             var items = routingPaste(super.touchSelectionMenuItems(for: context))
-            guard let url = Self.link(in: context.selectedText) else { return items }
-            let open = UIAction(
-                title: String(localized: "Open Link"),
-                image: UIImage(systemName: "safari"),
-                identifier: UIAction.Identifier("ighostvt.openLink"),
-            ) { _ in
-                UIApplication.shared.open(url)
+            var extras: [UIMenuElement] = []
+            if let line = Self.oneLine(context.selectedText) {
+                extras.append(UIAction(
+                    title: String(localized: "Copy as One Line"),
+                    image: UIImage(systemName: "arrow.right.to.line"),
+                    identifier: UIAction.Identifier("ighostvt.copyOneLine"),
+                ) { _ in
+                    UIPasteboard.general.string = line
+                })
             }
+            if let url = Self.link(in: context.selectedText) {
+                extras.append(UIAction(
+                    title: String(localized: "Open Link"),
+                    image: UIImage(systemName: "safari"),
+                    identifier: UIAction.Identifier("ighostvt.openLink"),
+                ) { _ in
+                    UIApplication.shared.open(url)
+                })
+            }
+            guard !extras.isEmpty else { return items }
             let copy = items.firstIndex { ($0 as? UIAction)?.identifier.rawValue == "terminal.copy" }
-            items.insert(open, at: copy.map { $0 + 1 } ?? 0)
+            items.insert(contentsOf: extras, at: copy.map { $0 + 1 } ?? 0)
             return items
+        }
+
+        /// The selection with every row trimmed at both ends and the line
+        /// breaks between them taken out, or nil when it is one row. A
+        /// program that lays out its own text (Claude Code) breaks a long
+        /// command or path over rows with no soft-wrap mark, so the plain
+        /// copy keeps those breaks and a shell reads each row as a command
+        /// of its own. Nothing is put between the rows: a break inside a
+        /// path must close up, and where a space was lost the person can
+        /// see it before running anything.
+        static func oneLine(_ text: String) -> String? {
+            let rows = text.split(whereSeparator: \.isNewline)
+            guard rows.count > 1 else { return nil }
+            let line = rows.map { $0.trimmingCharacters(in: .whitespaces) }.joined()
+            return line.isEmpty ? nil : line
         }
 
         /// The selection as one http(s) link, or nil. The whitespace around

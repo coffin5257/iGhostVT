@@ -152,7 +152,7 @@ enum AppMenus {
     }
 
     private static func remoteTabMenuItems() -> [UIMenuElement] {
-        let hosts = RemoteHostDirectory.shared.reachablePaired
+        let hosts = RemoteHostDirectory.shared.paired
         guard !hosts.isEmpty else {
             return [
                 UIAction(
