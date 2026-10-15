@@ -13,7 +13,9 @@ import UIKit
 /// rows marked open here for tabs closed since. This one lists what is
 /// true as it opens: this device's own rows at once, and each paired
 /// device's terminals once that device has answered — its submenu shows
-/// Loading… until then, or until a short wait runs out. On the Mac a
+/// Loading… until then, or until a short wait runs out, and then says
+/// what it knows (`RemoteSessionCatalog.Listing`): still connecting, not
+/// responding, or the terminals. On the Mac a
 /// device's terminals are what the catalog holds as the menu opens (see
 /// `openTerminals`). The standalone `+`
 /// controls (`NewTabMenu`) and the Mac's File ▸ New Tab on Device are built
@@ -24,7 +26,13 @@ enum NewTabMenuElements {
     /// How long a device's terminals wait for its answer before the
     /// submenu shows the last list it gave; a device that answers later is
     /// in the next one.
-    private static let refreshWait: UInt64 = 1_500_000_000
+    private static let refreshWait: TimeInterval = 1.5
+    /// The wait for a device that has given no list yet — just after
+    /// launch, the relay and Bonjour are still finding it, and a relayed
+    /// first connection takes a few seconds on its own. Nothing to show in
+    /// the meantime but Connecting….
+    private static let firstAnswerWait: TimeInterval = 6
+    private static let answerPoll: UInt64 = 200_000_000
     /// A device that answered this recently is not asked again: the menu
     /// that has just asked it, opened a second time, uses that answer.
     private static let answerFreshness: TimeInterval = 5
@@ -64,20 +72,24 @@ enum NewTabMenuElements {
         }
     }
 
-    /// Returns when the device has answered — the ask out now, or one
-    /// within `answerFreshness` — or `refreshWait` has passed, whichever is
-    /// first. The asking carries on past the wait and lands in the catalog.
+    /// Returns when the device has settled — answered or failed since the
+    /// menu opened, an answer within `answerFreshness`, or found out of
+    /// reach once looking is over — or the wait has passed, whichever is
+    /// first. A device not found yet is asked by the catalog the moment it
+    /// is (`RemoteSessionCatalog`), so this only watches. The asking
+    /// carries on past the wait and lands in the catalog.
     private static func awaitAnswer(fromHostID hostID: String) async {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            let gate = ResumeOnce(continuation)
+        let catalog = RemoteSessionCatalog.shared
+        let since = Date(timeIntervalSinceNow: -answerFreshness)
+        let hasList = if case .listed = catalog.listing(of: hostID) { true } else { false }
+        let deadline = Date(timeIntervalSinceNow: hasList ? refreshWait : firstAnswerWait)
+        if RemoteHostDirectory.shared.reachablePaired.contains(where: { $0.id == hostID }) {
             Task { @MainActor in
-                await RemoteSessionCatalog.shared.refresh(hostID: hostID, freshness: answerFreshness)
-                gate.resume()
+                await catalog.refresh(hostID: hostID, freshness: answerFreshness)
             }
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: refreshWait)
-                gate.resume()
-            }
+        }
+        while Date() < deadline, !catalog.hasSettled(hostID, since: since) {
+            try? await Task.sleep(nanoseconds: answerPoll)
         }
     }
 
@@ -177,11 +189,21 @@ enum NewTabMenuElements {
     ) -> [UIMenuElement] {
         hosts.map { host -> UIMenuElement in
             // A device on another iGhostVT cannot be opened: it is listed,
-            // greyed, with what to update.
-            if let theirs = RemoteHostDirectory.mismatchedVersion(ofHostID: host.id) {
+            // greyed, with what to update. One nothing can reach is greyed
+            // with that.
+            let unavailable: String? = if let theirs = RemoteHostDirectory.mismatchedVersion(ofHostID: host.id) {
+                RemoteVersionText.needsUpdate(theirs: theirs)
+            } else if RemoteSessionCatalog.shared.listing(of: host.id) == .unreachable {
+                RemoteSessionCatalog.statusText(.unreachable)
+            } else {
+                nil
+            }
+            if let unavailable {
                 let action = UIAction(title: host.displayName, image: UIImage(systemName: "network"), attributes: .disabled) { _ in }
                 if #available(iOS 16.0, *) {
-                    action.subtitle = RemoteVersionText.needsUpdate(theirs: theirs)
+                    action.subtitle = unavailable
+                } else {
+                    action.title = "\(host.displayName) — \(unavailable)"
                 }
                 return action
             }
@@ -235,54 +257,44 @@ enum NewTabMenuElements {
         #endif
     }
 
-    /// Past this many open terminals a device's group leads with Open All.
-    static let openAllThreshold = 3
-
-    /// The Open Terminals group as the catalog knows it now, or nothing
-    /// when the device holds none. One line per terminal, its title: the
-    /// process name under it read as noise in a list of agents that all
-    /// run the same binary.
+    /// Open All, then the Open Terminals group, as the catalog knows them
+    /// now; nothing when the device holds none, or a greyed line saying
+    /// why there is no list yet. Open All comes first so it sits right
+    /// under New Terminal, greyed once every terminal is open here. One line per terminal, its title: the process name under it
+    /// read as noise in a list of agents that all run the same binary.
     private static func openTerminalGroup(
         of host: PairedRemoteHost,
         isOpenHere: (PairedRemoteHost, XPCDaemonTransport.SessionSummary) -> Bool,
         attach: @escaping (String, UInt64) -> Void,
     ) -> [UIMenuElement] {
-        let sessions = RemoteSessionCatalog.shared.sessions[host.id] ?? []
+        let sessions: [XPCDaemonTransport.SessionSummary]
+        switch RemoteSessionCatalog.shared.listing(of: host.id) {
+        case let .listed(rows):
+            sessions = rows
+        case let other:
+            guard let status = RemoteSessionCatalog.statusText(other) else { return [] }
+            return [UIMenu(title: "", options: .displayInline, children: [
+                UIAction(title: status, attributes: .disabled) { _ in },
+            ])]
+        }
         guard !sessions.isEmpty else { return [] }
-        var open: [UIMenuElement] = sessions.map { session in
+        let open: [UIMenuElement] = sessions.map { session in
             UIAction(
                 title: session.menuTitle,
                 image: UIImage(systemName: isOpenHere(host, session) ? "checkmark" : "terminal"),
             ) { _ in attach(host.id, session.id) }
         }
-        if sessions.count > openAllThreshold {
-            let closed = sessions.filter { !isOpenHere(host, $0) }
-            open.insert(UIAction(
-                title: String(localized: "Open All"),
-                image: UIImage(systemName: "square.stack"),
-                attributes: closed.isEmpty ? .disabled : [],
-            ) { _ in
-                for session in closed {
-                    attach(host.id, session.id)
-                }
-            }, at: 0)
+        let closed = sessions.filter { !isOpenHere(host, $0) }
+        let openAll = UIAction(
+            title: String(localized: "Open All"),
+            image: UIImage(systemName: "square.stack"),
+            attributes: closed.isEmpty ? .disabled : [],
+        ) { _ in
+            for session in closed {
+                attach(host.id, session.id)
+            }
         }
-        return [UIMenu(title: String(localized: "Open Terminals"), options: .displayInline, children: open)]
-    }
-}
-
-/// Resumes its continuation the first time it is asked, and never again.
-@MainActor
-private final class ResumeOnce {
-    private var continuation: CheckedContinuation<Void, Never>?
-
-    init(_ continuation: CheckedContinuation<Void, Never>) {
-        self.continuation = continuation
-    }
-
-    func resume() {
-        continuation?.resume()
-        continuation = nil
+        return [openAll, UIMenu(title: String(localized: "Open Terminals"), options: .displayInline, children: open)]
     }
 }
 

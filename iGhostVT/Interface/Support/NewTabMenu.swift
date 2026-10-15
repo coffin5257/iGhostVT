@@ -105,7 +105,10 @@ struct NewTabSubmenu<Label: View>: View {
 final class NewTabMenuRows: ObservableObject {
     @Published private(set) var choices: NewTabDirectoryChoices?
 
+    /// Also asks the devices, as the UIKit menu does as it opens: the rows
+    /// taken now are what is known, and the answer is in the next touch's.
     func take(from tabManager: TabManager) {
+        NewTabMenuElements.askRemoteDevices()
         choices = NewTabDirectoryChoices(tabManager: tabManager)
     }
 }
@@ -195,10 +198,10 @@ struct NewTabMenuContent: View {
             // as its terminals were many, and read as this device's own.
             Section {
                 ForEach(choices.remoteHosts) { host in
-                    if let theirs = RemoteHostDirectory.mismatchedVersion(ofHostID: host.id) {
-                        // Another iGhostVT there: listed, greyed, with
-                        // what to update.
-                        let title = "\(host.displayName) — \(RemoteVersionText.needsUpdate(theirs: theirs))"
+                    if let unavailable = unavailableText(host) {
+                        // Another iGhostVT there, or out of reach:
+                        // listed, greyed, with why.
+                        let title = "\(host.displayName) — \(unavailable)"
                         Button {} label: {
                             SwiftUI.Label(title, systemImage: "network")
                         }
@@ -219,6 +222,16 @@ struct NewTabMenuContent: View {
         }
     }
 
+    private func unavailableText(_ host: PairedRemoteHost) -> String? {
+        if let theirs = RemoteHostDirectory.mismatchedVersion(ofHostID: host.id) {
+            return RemoteVersionText.needsUpdate(theirs: theirs)
+        }
+        if choices.remoteListings[host.id] == .unreachable {
+            return RemoteSessionCatalog.statusText(.unreachable)
+        }
+        return nil
+    }
+
     /// A paired device: a fresh shell there, one of the terminals it has
     /// open — which then opens here and is taken from where it was — or a
     /// fresh shell in a directory a tab here was in on it.
@@ -230,8 +243,30 @@ struct NewTabMenuContent: View {
             origin: .remote(hostID: host.id),
         )
         let recents = choices.remoteRecents[host.id] ?? []
-        let sessions = choices.remoteSessions[host.id] ?? []
+        let listing = choices.remoteListings[host.id] ?? .loading
+        let sessions = if case let .listed(rows) = listing { rows } else { [XPCDaemonTransport.SessionSummary]() }
+        // Right under New Terminal whenever the device holds a terminal,
+        // greyed once every one is open here.
         if !sessions.isEmpty {
+            let closed = sessions.filter { !isOpenHere($0, on: host) }
+            Button {
+                for session in closed {
+                    tabManager.openRemoteTab(attachingTo: session.id, hostID: host.id)
+                }
+                onOpen()
+            } label: {
+                SwiftUI.Label("Open All", systemImage: "square.stack")
+            }
+            .disabled(closed.isEmpty)
+        }
+        if let status = RemoteSessionCatalog.statusText(listing) {
+            Section {
+                Button {} label: {
+                    Text(verbatim: status)
+                }
+                .disabled(true)
+            }
+        } else if !sessions.isEmpty {
             Section {
                 remoteSessionRows(sessions, on: host)
             } header: {
@@ -258,23 +293,10 @@ struct NewTabMenuContent: View {
         }
     }
 
-    @ViewBuilder
     private func remoteSessionRows(
         _ sessions: [XPCDaemonTransport.SessionSummary],
         on host: PairedRemoteHost,
     ) -> some View {
-        if sessions.count > NewTabMenuElements.openAllThreshold {
-            let closed = sessions.filter { !isOpenHere($0, on: host) }
-            Button {
-                for session in closed {
-                    tabManager.openRemoteTab(attachingTo: session.id, hostID: host.id)
-                }
-                onOpen()
-            } label: {
-                SwiftUI.Label("Open All", systemImage: "square.stack")
-            }
-            .disabled(closed.isEmpty)
-        }
         ForEach(sessions) { session in
             Button {
                 tabManager.openRemoteTab(attachingTo: session.id, hostID: host.id)
@@ -336,11 +358,14 @@ struct NewTabDirectoryChoices {
 
     var openTabs: [OpenTab]
     var recents: [TerminalDirectory]
-    /// Paired devices on the network right now (remote access): a fresh
-    /// shell there, in its user's home, or a terminal it has open.
+    /// Every paired device (remote access): a fresh shell there, in its
+    /// user's home, or a terminal it has open. One not found yet is listed
+    /// as connecting, and one nothing can reach greyed — leaving them out
+    /// made the menu forget a device for the seconds after launch before
+    /// the relay or Bonjour had answered.
     var remoteHosts: [PairedRemoteHost]
-    /// The terminals each of those has open, as last asked.
-    var remoteSessions: [String: [XPCDaemonTransport.SessionSummary]]
+    /// What each of those has said about its terminals, as last asked.
+    var remoteListings: [String: RemoteSessionCatalog.Listing]
     /// Where tabs here have been on each of those, by host id.
     var remoteRecents: [String: [TerminalDirectory]]
 
@@ -368,8 +393,10 @@ struct NewTabDirectoryChoices {
         remoteHosts: RemoteHostDirectory,
         remoteSessions: RemoteSessionCatalog,
     ) {
-        self.remoteHosts = remoteHosts.reachablePaired
-        self.remoteSessions = remoteSessions.sessions
+        self.remoteHosts = remoteHosts.paired
+        remoteListings = Dictionary(uniqueKeysWithValues: self.remoteHosts.map { host in
+            (host.id, remoteSessions.listing(of: host.id))
+        })
         remoteRecents = Dictionary(uniqueKeysWithValues: self.remoteHosts.map { host in
             (host.id, store.menuDirectories(onHost: host.id))
         })

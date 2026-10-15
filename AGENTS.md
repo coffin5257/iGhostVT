@@ -584,8 +584,9 @@ shows the `lock` key as a LOCK column. The `title` key is the title the tab
 shows (its reported part, at most once a second, newest wins), so a paired
 device's new-tab menu names the terminal word for word as this one does,
 on one line — the process under it read as noise in a list of agents that
-all run the same binary. Past three terminals a device's group leads with
-Open All, which attaches every one not already open here.
+all run the same binary. Whenever a device holds a terminal, Open All
+sits right under its New Terminal and attaches every one not already open
+here — greyed once all are, gone when the device holds none.
 
 `uploadFile` (op 15) puts a file on the daemon's device for a shell there
 to read: what a drop on a *remote* tab pastes, since no path on the app's
