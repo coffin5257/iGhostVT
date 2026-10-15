@@ -48,6 +48,10 @@ final class SessionActivityController {
         }
     }
 
+    /// Set once a quit has ended the activity: nothing after it may bring
+    /// one back, and a refresh queued by a scene going away still might.
+    private static var isClosedForQuit = false
+
     private init() {}
 
     func register(_ key: AnyObject, snapshot: @escaping () -> WindowSnapshot?) {
@@ -56,7 +60,7 @@ final class SessionActivityController {
     }
 
     func refresh() {
-        guard #available(iOS 16.2, *) else { return }
+        guard #available(iOS 16.2, *), !Self.isClosedForQuit else { return }
         let state = currentState()
         Task { await Self.apply(state) }
     }
@@ -158,8 +162,31 @@ final class SessionActivityController {
     }
 
     #if !targetEnvironment(macCatalyst) && canImport(ActivityKit)
+        /// A quit that ended this app's shells (Background Activities off)
+        /// takes the activity with it. Nothing else would: the process is
+        /// gone, so no later refresh can, and the activity would go on
+        /// showing shells that no longer exist. Blocking, bounded by
+        /// `timeout`, because `applicationWillTerminate` is the caller and
+        /// anything still queued dies with the process. A suspended app
+        /// gets no such call and keeps its activity.
+        static func endForQuit(timeout: TimeInterval = 1) {
+            isClosedForQuit = true
+            guard #available(iOS 16.2, *) else { return }
+            let activities = Activity<TerminalSessionAttributes>.activities
+            guard !activities.isEmpty else { return }
+            let done = DispatchSemaphore(value: 0)
+            Task.detached {
+                for activity in activities {
+                    await activity.end(nil, dismissalPolicy: .immediate)
+                }
+                done.signal()
+            }
+            _ = done.wait(timeout: .now() + timeout)
+        }
+
         @available(iOS 16.2, *)
         private static func apply(_ state: TerminalSessionAttributes.ContentState) async {
+            guard !isClosedForQuit else { return }
             let existing = Activity<TerminalSessionAttributes>.activities
 
             guard state.totalCount > 0 || state.remoteAccess != nil else {
@@ -185,5 +212,9 @@ final class SessionActivityController {
         /// build keeps every caller and drops the payload here.
         @available(iOS 16.2, *)
         private static func apply(_: TerminalSessionAttributes.ContentState) async {}
+
+        static func endForQuit(timeout _: TimeInterval = 1) {
+            isClosedForQuit = true
+        }
     #endif
 }

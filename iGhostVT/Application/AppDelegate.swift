@@ -145,6 +145,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 XPCDaemonTransport.closeSessionsForQuit(local)
             }
             TerminalFileStaging.removeAllFiles()
+            // The activity listed those shells, and no refresh is coming
+            // after this to take it down.
+            SessionActivityController.endForQuit()
         }
     }
 }
