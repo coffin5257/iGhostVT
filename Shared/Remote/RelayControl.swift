@@ -16,6 +16,8 @@ enum RelayControl {
         case host
         case accept
         case list
+        /// The drop zone; only `ighostvt-cli drop` speaks it.
+        case drop
     }
 
     /// What a signature covers: the role, which relay, its challenge (empty

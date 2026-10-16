@@ -1,0 +1,5 @@
+{
+  "name": "Zstandard",
+  "url": "https://github.com/facebook/zstd",
+  "version": "1.5.7"
+}

@@ -51,6 +51,8 @@ Put these in a `.env` file beside `compose.yml` (see
 | `RELAY_PUBLIC_PORT` | The port clients connect to. Compose publishes the relay on it, so changing the port takes this one line. | `46405` |
 | `RELAY_NAME` | The name iGhostVT shows for the relay. | `iGhostVT Relay` |
 | `RELAY_RATE_PER_IP` | Data connections one address may open in any 10 s; `0` turns the limit off. | `60` |
+| `RELAY_DROP_BYTES` | Space the [drop zone](#drop-zone) may use, like `4G` or `500M`; `0` turns it off. | `4G` |
+| `RELAY_DROP_FILE_BYTES` | Space one file in the drop zone may use, after compression. | `RELAY_DROP_BYTES` |
 
 Two more variables exist for running the binary outside the image:
 `RELAY_LISTEN` (the listen address, default `:46405`) and `RELAY_DATA` (the
@@ -91,6 +93,33 @@ name instead and put it in `RELAY_PUBLIC_HOST`. iGhostVT resolves the name on
 every connection, so an address change then needs no new configuration at
 all.
 
+## Drop zone
+
+Every device that has the configuration can leave files on the relay for
+the others to take, with `ighostvt-cli drop` — much faster than pasting a
+file through a terminal:
+
+```sh
+ighostvt-cli drop put build.tar.gz      # on one device
+ighostvt-cli drop                       # on another: what is there
+ighostvt-cli drop get build.tar.gz      # into the current folder
+```
+
+The CLI compresses each file with zstd before it leaves and checks it
+(size and SHA-256) when it arrives. An upload or download cut off resumes
+when the same command runs again — an upload as long as the file has not
+changed and its part on the relay has not expired. A file is kept for 30 minutes after the
+last device that put or got it disconnected — listing does not count — and
+`drop rm` removes one sooner. **Nothing in the drop zone survives a restart
+of the relay**: it is emptied whenever the relay starts or stops.
+
+**Privacy:** unlike terminal sessions, which run end to end encrypted
+through the relay, drop zone files are *not* encrypted. They cross the
+network compressed but readable, and sit on the relay's disk the same way
+(`/data/drop`) until they expire. Anyone who can read the traffic or the
+server's disk can read them. Keep secrets out of it, or encrypt them
+yourself first. `RELAY_DROP_BYTES=0` turns the drop zone off.
+
 ## Commands
 
 All of them run inside the container:
@@ -102,7 +131,7 @@ docker compose exec relay ighostvt-relay <command>
 | Command | What it does |
 |---|---|
 | `config` | Prints the configuration (`.vtrpsc`). |
-| `status` | Lists the hosts online, with their iGhostVT versions, and the connections in use. |
+| `status` | Lists the hosts online, with their iGhostVT versions, the connections in use, and what the drop zone holds. |
 | `rotate` | Makes a new key and configuration and drops every registered host. The old configuration stops working at once; import the new one on every device. Use it when a configuration has leaked, or when you deleted it. |
 | `forget <hostID>` | Unbinds a host id from its host key (below), for a host that was reinstalled or lost its key. A host online under that id is dropped. |
 | `version` | Prints the relay's version and protocol version. |
@@ -126,6 +155,7 @@ Everything lives in the `relay-data` volume, mounted at `/data`:
 | `ighostvt.vtrpsc` | The configuration, private key included (mode 0600). You may delete it once every device has imported it; `config` then has nothing to print, and only `rotate` makes a new one. |
 | `hosts.json` | Host id → host key bindings. |
 | `admin.sock` | How the commands above reach the running relay. |
+| `drop/` | The drop zone: each file under a random id, and `manifest.json` with every file's name, size, permissions and expiry. Emptied whenever the relay starts or stops. |
 
 Use a named volume, as `compose.yml` does. The relay runs as an unprivileged
 user (65532), and a bind-mounted directory created by root is not writable

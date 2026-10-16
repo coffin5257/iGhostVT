@@ -1,0 +1,8 @@
+// The vendored zstd, for the CLI's drop zone. Reached through
+// SWIFT_INCLUDE_PATHS in Configuration/Base.xcconfig like Shared/XPCShim;
+// not a synchronized group — zstd.c joins the ighostvt-cli target alone,
+// by name, in the project. See README.md.
+module CZstd [system] {
+    header "zstd.h"
+    export *
+}

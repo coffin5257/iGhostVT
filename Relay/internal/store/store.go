@@ -5,6 +5,8 @@
 //	                 written once per key, and the only copy of that key
 //	hosts.json       host id → host key bindings (first registration wins)
 //	admin.sock       where `rotate`, `forget` and `status` reach `serve`
+//	drop/            the drop zone: one file per id and its manifest, emptied
+//	                 whenever `serve` starts or stops
 //
 // Every file is replaced by a rename, so a crash leaves the old one or the
 // new one and never half of either.
@@ -30,6 +32,7 @@ const (
 	configFile = "ighostvt.vtrpsc"
 	hostsFile  = "hosts.json"
 	adminFile  = "admin.sock"
+	dropDir    = "drop"
 )
 
 // Dir is a data directory.
@@ -39,6 +42,9 @@ func (d Dir) path(name string) string { return filepath.Join(string(d), name) }
 
 // ConfigPath is where the configuration lives.
 func (d Dir) ConfigPath() string { return d.path(configFile) }
+
+// DropDir is the drop zone's directory.
+func (d Dir) DropDir() string { return d.path(dropDir) }
 
 // AdminSocket is the admin socket's path.
 func (d Dir) AdminSocket() string { return d.path(adminFile) }

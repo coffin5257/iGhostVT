@@ -17,6 +17,7 @@
 		AA0000000000000000000108 /* Dog in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000207 /* Dog */; };
 		AA0000000000000000000109 /* SPIndicator in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000208 /* SPIndicator */; };
 		AA000000000000000000010A /* GhostRemoteWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA000000000000000000030C /* GhostRemoteWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA000000000000000000010B /* zstd.c in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000030D /* zstd.c */; settings = {COMPILER_FLAGS = "-O3 -w"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -91,6 +92,7 @@
 		AA000000000000000000030A /* ighostvtd-remote */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "ighostvtd-remote"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA000000000000000000030B /* GhostRemote.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GhostRemote.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA000000000000000000030C /* GhostRemoteWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GhostRemoteWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA000000000000000000030D /* zstd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -262,9 +264,18 @@
 				AA000000000000000000050C /* Shared/Remote */,
 				AA0000000000000000000509 /* Shared/Screen */,
 				AA000000000000000000050B /* Shared/Wire */,
+				AA0000000000000000000803 /* Shared/Zstd */,
 				84D1AEEE304298C300894548 /* Configuration */,
 				AA0000000000000000000802 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000803 /* Shared/Zstd */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000000000000030D /* zstd.c */,
+			);
+			path = Shared/Zstd;
 			sourceTree = "<group>";
 		};
 		AA0000000000000000000802 /* Products */ = {
@@ -618,6 +629,8 @@
 				"$(SRCROOT)/Licenses",
 				"$(SRCROOT)/Licenses/ghostty/LICENSE",
 				"$(SRCROOT)/Licenses/ghostty/notice.json",
+				"$(SRCROOT)/Licenses/zstd/LICENSE",
+				"$(SRCROOT)/Licenses/zstd/notice.json",
 				"$(SRCROOT)/manifest.json",
 				"$(SRCROOT)/Configuration/Version.xcconfig",
 				"$(SRCROOT)/iGhostVT.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
@@ -645,6 +658,8 @@
 				"$(SRCROOT)/Licenses",
 				"$(SRCROOT)/Licenses/ghostty/LICENSE",
 				"$(SRCROOT)/Licenses/ghostty/notice.json",
+				"$(SRCROOT)/Licenses/zstd/LICENSE",
+				"$(SRCROOT)/Licenses/zstd/notice.json",
 				"$(SRCROOT)/manifest.json",
 				"$(SRCROOT)/Configuration/Version.xcconfig",
 				"$(SRCROOT)/iGhostVT.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
@@ -694,6 +709,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA000000000000000000010B /* zstd.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

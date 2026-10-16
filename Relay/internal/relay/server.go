@@ -33,6 +33,15 @@ type Limits struct {
 	HostSilence      time.Duration // a host that sends nothing this long is dropped
 	WriteTimeout     time.Duration // one control frame to a host
 	PendingBytes     int           // client bytes held while the host calls back
+
+	DropBytes     int64         // the drop zone's stored bytes together; 0 turns it off
+	DropFileBytes int64         // one file's stored bytes
+	DropFiles     int           // files at once; an `ls` of them all fits one frame
+	DropConns     int           // drop sessions at once
+	DropTTL       time.Duration // a file outlives its last connection by this
+	DropIdle      time.Duration // a drop session silent this long is closed
+	DropLife      time.Duration // a drop session takes no new request after this
+	DropReserve   int64         // free disk the drop zone never writes into
 }
 
 // DefaultLimits are the protocol's.
@@ -50,6 +59,14 @@ func DefaultLimits() Limits {
 		HostSilence:      200 * time.Second,
 		WriteTimeout:     10 * time.Second,
 		PendingBytes:     64 * 1024,
+		DropBytes:        4 << 30,
+		DropFileBytes:    4 << 30,
+		DropFiles:        64,
+		DropConns:        32,
+		DropTTL:          30 * time.Minute,
+		DropIdle:         60 * time.Second,
+		DropLife:         time.Hour,
+		DropReserve:      1 << 30,
 	}
 }
 
@@ -93,6 +110,8 @@ type Server struct {
 	closed    bool
 	rate      *rateLimiter
 	stop      chan struct{}
+	closeDone chan struct{} // closed once Close has finished
+	drop      *dropZone     // nil when off
 }
 
 // New prepares a server: it loads (or makes) the relay's key and writes the
@@ -108,13 +127,14 @@ func New(opts Options) (*Server, error) {
 		opts.RetryEndpoint = time.Minute
 	}
 	s := &Server{
-		opts:    opts,
-		limits:  opts.Limits,
-		log:     opts.Logger,
-		hosts:   map[string]*hostConn{},
-		tickets: map[string]*splice{},
-		rate:    newRateLimiter(opts.Limits.RatePerIP, opts.Limits.RateWindow),
-		stop:    make(chan struct{}),
+		opts:      opts,
+		limits:    opts.Limits,
+		log:       opts.Logger,
+		hosts:     map[string]*hostConn{},
+		tickets:   map[string]*splice{},
+		rate:      newRateLimiter(opts.Limits.RatePerIP, opts.Limits.RateWindow),
+		stop:      make(chan struct{}),
+		closeDone: make(chan struct{}),
 	}
 	bindings, err := opts.Dir.LoadBindings()
 	if err != nil {
@@ -122,6 +142,9 @@ func New(opts Options) (*Server, error) {
 	}
 	s.bindings = bindings
 	if err := s.prepareKey(); err != nil {
+		return nil, err
+	}
+	if s.drop, err = newDropZone(opts.Dir.DropDir(), opts.Limits, opts.Logger); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -149,13 +172,17 @@ func (s *Server) Serve(ln net.Listener) error {
 	}
 }
 
-// Close stops listening and drops every connection the relay holds.
+// Close stops listening and drops every connection the relay holds. A
+// second call waits for the first to finish, so the process does not exit
+// while the drop zone is still being emptied.
 func (s *Server) Close() {
 	s.mu.Lock()
 	if s.closed {
 		s.mu.Unlock()
+		<-s.closeDone
 		return
 	}
+	defer close(s.closeDone)
 	s.closed = true
 	close(s.stop)
 	listeners := s.listeners
@@ -169,6 +196,9 @@ func (s *Server) Close() {
 	}
 	for _, h := range hosts {
 		s.dropHost(h)
+	}
+	if s.drop != nil {
+		s.drop.close()
 	}
 }
 

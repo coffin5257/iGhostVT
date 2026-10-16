@@ -16,6 +16,8 @@ services:
       RELAY_PUBLIC_HOST: ${RELAY_PUBLIC_HOST:-}   # domain or IP; empty finds the public IP
       RELAY_PUBLIC_PORT: ${RELAY_PUBLIC_PORT:-46405}
       RELAY_NAME: ${RELAY_NAME:-}
+      RELAY_DROP_BYTES: ${RELAY_DROP_BYTES:-}          # drop zone space, like 4G; 0 turns it off
+      RELAY_DROP_FILE_BYTES: ${RELAY_DROP_FILE_BYTES:-}
     volumes: ["relay-data:/data"]
 volumes:
   relay-data:

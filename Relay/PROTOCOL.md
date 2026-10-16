@@ -157,6 +157,92 @@ Sent after reading the hello:
 Answered with `{"ok":true,"hosts":[{"id":"…","name":"…","appVersion":"1.4.0","since":1760000000}]}`
 and closed.
 
+### `drop`
+
+The drop zone: files any member puts on the relay for any member to take.
+Sent after reading the hello:
+
+```json
+{"role":"drop","sig":"<relay key; role drop, the nonce, empty parameter>"}
+```
+
+Refused like `list` (`auth`), with `full` when 32 drop sessions are open,
+and with `invalid` when the relay runs with the drop zone off — which is
+also what a relay older than the drop zone answers to the unknown role, so
+a client says the same thing about both. Admitted:
+
+```json
+{"ok":true,"ttl":1800,"fileBytes":4294967296,"totalBytes":4294967296}
+```
+
+Requests then follow one at a time on the same connection, each a frame
+with an `op`, each answered by a frame. A refusal of one request is
+`{"ok":false,"reason":…}` and the session goes on, except where noted.
+A session that sends nothing for 60 s — between requests, or inside an
+upload's stream — is closed; a download is cut when the client takes no
+64 KiB for 60 s. A session takes no new request an hour after it was
+admitted, so no connection holds its files forever, and a key rotation
+ends every drop session at once.
+
+| op | request | answer |
+|---|---|---|
+| `ls` | — | `{"ok":true,"files":[entry…]}` (absent when empty) |
+| `put` | `name`, `size`, `mode`, `mtime`, `encoding`, `fingerprint` — or `id` alone to resume | `{"ok":true,"id":…,"offset":K}`, then the stream (below) |
+| `get` | `id`, `offset` | `{"ok":true,"id":…,"offset":…,"stored":N}`, then bytes `offset`…`N` raw |
+| `rm` | `id` | `{"ok":true,"id":…}` |
+
+An entry is the file's manifest row:
+
+```json
+{"id":"<uuid>","name":"build.log","size":17488895,"stored":217744,
+ "encoding":"zstd","mode":420,"mtime":1735787040,"sha256":"<hex>",
+ "fingerprint":"v1:z10507l3:<hex>","created":1760000000,"complete":true,
+ "expires":1760001800}
+```
+
+`size`, `mode`, `mtime` and `sha256` are the uploader's word about the
+file itself, and `fingerprint` (optional, at most 128 bytes of lower-case
+letters, digits and colons) is a mark of its own the relay keeps and lists
+but never reads — the CLI's names its zstd version and level and the
+SHA-256 of the file's first MiB, and it compares that before resuming a
+partial upload; `stored` is the bytes the relay holds. The relay never decodes
+anything: what it stores is what the uploader streamed, and `encoding`
+(`zstd` or `none`) tells the downloader how to read it. `expires` is absent
+while the file is held (below).
+
+**Upload.** The relay makes the id (a random UUID; the file is stored under
+it, never under its name) and answers how many stored bytes it already has:
+0 for a new file, more for a resumed one. The client then streams the rest
+of the encoded file as chunks — `[u32 big-endian length][bytes]`, at most
+1 MiB each — ends with a zero length, and sends
+`{"op":"commit","sha256":"<64 lower-case hex>"}`, answered
+`{"ok":true,"id":…,"stored":N}`. Only a committed file can be read
+(`incomplete` otherwise). A chunk that would take the file past `fileBytes`
+is answered `size` and the file is removed; past `totalBytes`, or into the
+last GiB of free disk, `full` and the partial file is kept for a resume.
+Both end the session, as does a chunk longer than 1 MiB (`invalid`). A
+resume (`put` with `id`) needs an uncommitted file no connection is
+uploading (`busy` otherwise); the stream picks up at `offset`, so the
+client must produce the same bytes again — the CLI compresses on one thread
+at a fixed level for exactly this.
+
+`name` is one path component of at most 255 bytes of UTF-8: no `/` or `\`,
+not `.` or `..`, no control character and none of the format characters
+that reorder or hide text (U+200B–U+200F, U+202A–U+202E, U+2066–U+2069,
+U+2028, U+2029, U+FEFF). `mode` is at most `0777`, `mtime` within 10¹¹
+seconds of the epoch. Anything else is `invalid`. Together these keep an
+`ls` of the most files at the longest names within one frame.
+
+**Expiry.** A file is *held* by every open connection that put or got it,
+and goes 30 minutes (`ttl`) after the last of them closed. `ls` holds
+nothing, so listing keeps no file alive. `rm` removes a file at once unless
+it is being uploaded (`busy`); a download already under way finishes. The
+relay empties the whole zone when it starts and when it stops: nothing in
+it outlives the process.
+
+Reasons: `unknown` (no such id), `incomplete`, `busy`, `size`, `full`,
+`invalid`.
+
 ## Liveness
 
 Every connection the relay holds — both legs of a splice and every control
@@ -168,6 +254,8 @@ or timeout, the relay closes both; nothing is left half-open.
 
 64 hosts; 32 pending tickets per host; 512 splices; 64 connections that
 have not yet produced an SNI; data connections rate-limited per source
-address (60 per 10 s by default, `RELAY_RATE_PER_IP`). A splice reads from one side only after the write to
+address (60 per 10 s by default, `RELAY_RATE_PER_IP`); 32 drop sessions, 64
+files and 4 GiB stored in the drop zone (`RELAY_DROP_BYTES`, one file at most
+`RELAY_DROP_FILE_BYTES`), never into the disk's last GiB. A splice reads from one side only after the write to
 the other has completed, so a slow reader slows its writer instead of
 filling the relay's memory.

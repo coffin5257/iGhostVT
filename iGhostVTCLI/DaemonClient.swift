@@ -38,6 +38,10 @@ enum CLIError: Error {
     case hostVersion(String, String)
     case hostStoreFailed(String)
     case pairingFailed(String)
+    /// The drop zone cannot be used: no relay, an older one, a refusal.
+    case dropUnavailable(String)
+    /// A drop zone transfer went wrong.
+    case dropFailed(String)
 
     var exitCode: Int32 {
         switch self {
@@ -47,7 +51,8 @@ enum CLIError: Error {
         case .runAsRoot, .remoteAsRoot: 77
         case .noPairedHosts, .hostNotPaired, .hostAmbiguous, .hostNotFound: 64
         case .refused, .sessionLingered, .remoteAccessOff, .remoteAccessStuck, .pairingClosed, .relayStoreFailed: 1
-        case .hostStoreFailed, .pairingFailed: 1
+        case .hostStoreFailed, .pairingFailed, .dropFailed: 1
+        case .dropUnavailable: 69
         }
     }
 
@@ -117,7 +122,7 @@ enum CLIError: Error {
             return "\(name) runs \(line), and this device runs \(RemoteAccess.lineDescription(RemoteAccess.appVersion)). Update both to the same version."
         case let .hostStoreFailed(path):
             return "Unable to write \(path)."
-        case let .pairingFailed(message):
+        case let .pairingFailed(message), let .dropUnavailable(message), let .dropFailed(message):
             return message
         }
     }

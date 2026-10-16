@@ -97,6 +97,8 @@ func (s *Server) handleControl(conn net.Conn) {
 		s.accept(conn, req)
 	case protocol.RoleList:
 		s.list(conn, relayID, nonce, req)
+	case protocol.RoleDrop:
+		s.handleDrop(conn, relayID, nonce, req)
 	default:
 		refuse(conn, protocol.ReasonInvalid)
 	}
