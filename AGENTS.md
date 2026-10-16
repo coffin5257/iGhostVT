@@ -549,6 +549,34 @@ against it: concurrent writers lose nothing, own writes are silent, an
 external one is announced once, an answer that writes loops nothing. No
 Darwin notification is posted. Every file in `Shared/Remote` joins the CLI.
 
+**The drop zone is the relay's and the CLI's alone** (`ighostvt-cli drop
+[--relay <file>] ls|put|get|rm`, `Relay/internal/relay/drop.go`, the
+`drop` role in `Relay/PROTOCOL.md`): files a member of the relay leaves
+there for any other member, so a file moves between devices as a TCP
+stream instead of base64 typed into a shell. Nothing in the app, the
+daemons or the remote wire knows about it, which is why it needed no
+breaking release: the relay protocol stays version 1 with one more role,
+and a relay that predates it answers the unknown role `invalid`, which the
+CLI reports as "no drop zone". The relay makes each file's id, stores it
+under that id only, keeps name / size / mode / mtime / SHA-256 in the
+manifest (in memory, mirrored to `drop/manifest.json`), and never decodes
+a byte. A file is held by every open connection that put or got it and
+goes `DropTTL` (30 min) after the last one closed; `ls` holds nothing; the
+zone is emptied when the relay starts and when it stops. The CLI
+compresses with the vendored zstd (`Shared/Zstd`, compiled into the CLI
+target alone, by name — see its README) on one thread at a fixed level, so
+a cut-off upload is resumed by compressing again and skipping what the
+relay already has; a download lands in a `.part` file beside its
+destination, is decoded into a temporary file, checked against the
+manifest's size and SHA-256, and only then renamed into place (with the
+uploader's permission bits, never set-id ones, and its mtime). Names are
+checked on both sides — one path component, no control or bidi/format
+characters — and printed escaped, because a member chooses them and
+another member's terminal shows them. **The drop zone is not encrypted**:
+it rides the relay's plaintext control connection and sits on its disk as
+zstd. That was the user's call (2026-10-17) — the relay is theirs — and the
+README says so; don't describe it as end to end.
+
 `Scripts/mac-install.sh` is the unattended Mac install built on it: root
 copies the notarized bundle into `/Applications` (SHA256SUMS + `spctl`
 checked, `xattr -cr`, owned by the user so it can update itself), and every other step — the open-at-login LaunchAgent

@@ -14,4 +14,6 @@
 // The `CiGhostVTCoreCrypto` module — this project's declarations of the
 // system's SPAKE2+, which remote-access pairing runs on. See
 // Shared/CoreCryptoShim/module.modulemap.
-SWIFT_INCLUDE_PATHS = $(inherited) $(SRCROOT)/Shared/XPCShim $(SRCROOT)/Shared/CoreCryptoShim
+// The `CZstd` module — the vendored zstd the CLI's drop zone compresses
+// with. See Shared/Zstd/README.md.
+SWIFT_INCLUDE_PATHS = $(inherited) $(SRCROOT)/Shared/XPCShim $(SRCROOT)/Shared/CoreCryptoShim $(SRCROOT)/Shared/Zstd

@@ -38,7 +38,8 @@ const usage = `usage: ighostvt-relay [command]
   version          print the version
 
 Environment: RELAY_PUBLIC_HOST, RELAY_PUBLIC_PORT, RELAY_NAME, RELAY_LISTEN,
-RELAY_DATA. See the README.
+RELAY_DATA, RELAY_RATE_PER_IP, RELAY_DROP_BYTES, RELAY_DROP_FILE_BYTES. See the
+README.
 `
 
 func main() {
@@ -106,6 +107,21 @@ func serve(dir store.Dir) error {
 		}
 		limits.RatePerIP = n
 	}
+	if v := strings.TrimSpace(os.Getenv("RELAY_DROP_BYTES")); v != "" {
+		n, err := parseBytes(v)
+		if err != nil {
+			return fmt.Errorf("RELAY_DROP_BYTES %q is not a size (like 4G; 0 turns the drop zone off)", v)
+		}
+		limits.DropBytes = n
+		limits.DropFileBytes = n
+	}
+	if v := strings.TrimSpace(os.Getenv("RELAY_DROP_FILE_BYTES")); v != "" {
+		n, err := parseBytes(v)
+		if err != nil || n == 0 {
+			return fmt.Errorf("RELAY_DROP_FILE_BYTES %q is not a size (like 1G)", v)
+		}
+		limits.DropFileBytes = n
+	}
 	server, err := relay.New(relay.Options{
 		Dir:      dir,
 		Name:     env("RELAY_NAME", "iGhostVT Relay"),
@@ -146,6 +162,30 @@ func serve(dir store.Dir) error {
 	server.Close()
 	os.Remove(dir.AdminSocket())
 	return err
+}
+
+// parseBytes reads a count of bytes with an optional K, M, G or T suffix
+// (powers of 1024).
+func parseBytes(text string) (int64, error) {
+	shift := 0
+	switch strings.ToUpper(text[len(text)-1:]) {
+	case "K":
+		shift = 10
+	case "M":
+		shift = 20
+	case "G":
+		shift = 30
+	case "T":
+		shift = 40
+	}
+	if shift > 0 {
+		text = text[:len(text)-1]
+	}
+	n, err := strconv.ParseInt(strings.TrimSpace(text), 10, 64)
+	if err != nil || n < 0 || n > (1<<62)>>shift {
+		return 0, fmt.Errorf("not a size")
+	}
+	return n << shift, nil
 }
 
 // endpointFunc says where the configuration points: RELAY_PUBLIC_HOST as it
@@ -220,6 +260,11 @@ func status(dir store.Dir) error {
 	}
 	fmt.Printf("splices    %d active, %d waiting for their host\n", st.Splices, st.PendingTickets)
 	fmt.Printf("hosts      %d online, %d bound\n", len(st.Hosts), st.BoundHosts)
+	if st.DropEnabled {
+		fmt.Printf("drop zone  %d files, %d of %d bytes\n", st.DropFiles, st.DropBytes, st.DropLimit)
+	} else {
+		fmt.Println("drop zone  off")
+	}
 	if len(st.Hosts) > 0 {
 		w := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
 		fmt.Fprintln(w, "\nID\tNAME\tVERSION\tSINCE")

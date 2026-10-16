@@ -225,6 +225,10 @@ func (s *Server) Rotate() (string, error) {
 	for _, h := range hosts {
 		s.dropHost(h)
 	}
+	if s.drop != nil {
+		// Admitted under the old key: they must not outlive it either.
+		s.drop.endSessions()
+	}
 	s.log.Printf("rotated the relay key; %d host(s) dropped", len(hosts))
 	return fmt.Sprintf("New key written; %d host(s) dropped. Every device has to import the new configuration:\n    %s", len(hosts), SaveCommand), nil
 }
@@ -267,14 +271,27 @@ type Status struct {
 	BoundHosts     int                 `json:"boundHosts"`
 	Splices        int                 `json:"splices"`
 	PendingTickets int                 `json:"pendingTickets"`
+	DropEnabled    bool                `json:"dropEnabled"`
+	DropFiles      int                 `json:"dropFiles"`
+	DropBytes      int64               `json:"dropBytes"`
+	DropLimit      int64               `json:"dropLimit"`
 }
 
 // Status reports what the relay holds right now.
 func (s *Server) Status() Status {
 	hosts := s.onlineHosts()
+	var dropFiles int
+	var dropBytes int64
+	if s.drop != nil {
+		dropFiles, dropBytes = s.drop.usage()
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return Status{
+		DropEnabled:    s.drop != nil,
+		DropFiles:      dropFiles,
+		DropBytes:      dropBytes,
+		DropLimit:      s.limits.DropBytes,
 		RelayID:        s.relayID,
 		Name:           s.opts.Name,
 		Endpoint:       s.endpoint,

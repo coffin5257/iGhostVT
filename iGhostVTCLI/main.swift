@@ -23,6 +23,10 @@ usage: ighostvt-cli [--host <host>] list
        ighostvt-cli remote name <name>
        ighostvt-cli remote relay (<file.vtrpsc> | --remove)
        ighostvt-cli update [--check]
+       ighostvt-cli drop [--relay <file.vtrpsc>] [ls]
+       ighostvt-cli drop [--relay <file.vtrpsc>] put <file>...
+       ighostvt-cli drop [--relay <file.vtrpsc>] get <file>... [-o <path>] [-f]
+       ighostvt-cli drop [--relay <file.vtrpsc>] rm <file>...
 
   list          show the daemon's sessions: id, foreground process, size,
                 whether it is attached, the tab's lock, and the shell's
@@ -60,6 +64,18 @@ usage: ighostvt-cli [--host <host>] list
                 copy's team. iGhostVT relaunches and every session on the
                 Mac ends. --check only says whether there is one
 
+  drop          files on the relay, for every device that uses it: put
+                uploads (compressed), get downloads into the current folder
+                or -o, keeping the file's permissions and time (-f replaces
+                one that exists), rm removes, ls lists. A file is named by
+                its id, the start of it, or its name. The relay keeps a file
+                for 30 minutes after the last device that put or got it
+                disconnected, and forgets every file when it restarts. A
+                put or get that was cut off resumes when run again. The
+                relay is iGhostVT's own; --relay names another
+                configuration. Files cross the relay compressed but not
+                encrypted
+
 On the Mac, run it as the user iGhostVT runs for, never as root. --host,
 hosts and pair read iGhostVT's own pairings, and need that user everywhere.
 """
@@ -75,13 +91,14 @@ enum Command {
     case update(checkOnly: Bool)
     case hosts(nearby: Bool)
     case pair(selector: String, code: String?)
+    case drop(DropCommand, relayPath: String?)
 
     /// The session commands, which `--host` sends elsewhere; everything
     /// else is about this device.
     var takesHost: Bool {
         switch self {
         case .list, .capture, .send, .new, .kill: true
-        case .help, .remote, .update, .hosts, .pair: false
+        case .help, .remote, .update, .hosts, .pair, .drop: false
         }
     }
 }
@@ -167,6 +184,9 @@ func parse(_ arguments: [String]) throws -> Command {
             throw CLIError.usage("The pair command takes a host and an optional code. Run `ighostvt-cli hosts --nearby` to see them.")
         }
         return .pair(selector: selector, code: rest.count == 2 ? rest[1] : nil)
+    case "drop":
+        let (command, relayPath) = try DropCommands.parse(rest)
+        return .drop(command, relayPath: relayPath)
     case "-h", "--help", "help":
         return .help
     default:
@@ -287,6 +307,8 @@ do {
         try nearby ? HostCommands.nearby() : HostCommands.list()
     case let .pair(selector, code):
         try HostCommands.pair(selector: selector, code: code)
+    case let .drop(command, relayPath):
+        try DropCommands.run(command, relayPath: relayPath)
     }
     exit(0)
 } catch {
