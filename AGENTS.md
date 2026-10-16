@@ -53,7 +53,7 @@ which launchd never sized — so a session's buffers cannot jetsam the daemon.
   for exactly this reason.
 - Depends on the **released**
   [libghostty-spm](https://github.com/Lakr233/libghostty-spm) package
-  (`upToNextMajor` from 2.2.2026101501, Ghostty 1e9e14af on Zig 0.16). 2.x
+  (`upToNextMajor` from 2.2.2026101502, Ghostty 1e9e14af on Zig 0.16). 2.x
   selects text inline on iOS — a long press puts handles and the edit menu
   on the terminal itself — and removed the long-press hand-off
   (`onTextSelectionRequest`) the app's own selection sheet hung off, so the
@@ -97,6 +97,9 @@ which launchd never sized — so a session's buffers cannot jetsam the daemon.
   adds `selectionRegion()` and a search delegate the app does not use.
   2.2.2026101501 redraws the touch highlight when a program repaints the
   text under an unchanged selection — it kept the old rows' shapes.
+  2.2.2026101502 (binary `upstream.1e9e14af5df1-3`) builds libghostty
+  without GNU libintl (LGPL) and sets `LANG` / `LANGUAGE` from the
+  preferred languages in Swift before `ghostty_init`, as libintl did.
   2.2.2026101001 draws a symbol key of
   the accessory bar as all of its text on one line, in a capsule that
   widens to fit (`TerminalInputAccessoryItem.buttonTitle`, which the
