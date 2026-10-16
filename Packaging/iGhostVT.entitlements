@@ -137,6 +137,18 @@
 	<true/>
 	<key>com.apple.private.security.storage.AppDataContainers</key>
 	<true/>
+	<!-- Allow the app to read iCloud and File Provider data vaults.
+	     These storage classes are required even with no-sandbox. -->
+	<key>com.apple.private.security.storage.CloudDocsDB</key>
+	<true/>
+	<key>com.apple.private.security.storage.CloudKit</key>
+	<true/>
+	<key>com.apple.private.security.storage.FileProvider</key>
+	<true/>
+	<key>com.apple.private.security.storage.MobileDocuments</key>
+	<true/>
+	<key>com.apple.private.security.storage.iCloudDrive</key>
+	<true/>
 	<!-- Remote access: the name the owner gave this device, which it
 	     introduces itself by when it pairs. Without it UIDevice.name is
 	     only the model ("iPad"), and every device looks the same. -->
