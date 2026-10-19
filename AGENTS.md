@@ -53,7 +53,13 @@ which launchd never sized — so a session's buffers cannot jetsam the daemon.
   for exactly this reason.
 - Depends on the **released**
   [libghostty-spm](https://github.com/Lakr233/libghostty-spm) package
-  (`upToNextMajor` from 2.2.2026101502, Ghostty 1e9e14af on Zig 0.16). 2.x
+  (`upToNextMajor` from 2.2.2026101901, Ghostty 1e9e14af on Zig 0.16).
+  2.2.2026101901 keeps Shift, Option and Control on Return: on Catalyst
+  modified Return is claimed as a key command, and hardware control keys
+  carry no C0/DEL text that would make the kitty encoder drop consumed
+  modifiers. Shift+Enter now inserts a newline in Claude Code instead of
+  submitting the prompt. This Swift-only release uses the same
+  `upstream.1e9e14af5df1-3` binary as 2.2.2026101502. 2.x
   selects text inline on iOS — a long press puts handles and the edit menu
   on the terminal itself — and removed the long-press hand-off
   (`onTextSelectionRequest`) the app's own selection sheet hung off, so the
