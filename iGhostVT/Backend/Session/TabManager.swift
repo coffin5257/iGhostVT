@@ -377,14 +377,12 @@ final class TabManager: ObservableObject {
 
     /// Puts a freshly made tab in front: placed, activated, and — when the
     /// scene is already up — told so, since a tab created after
-    /// `noteSceneActive()` gets no replay of it. A tab that copies the one
-    /// the user was in — ⌘T, or a menu row naming that tab's own directory
-    /// — goes right after it, as a browser's does, so it lands beside the
-    /// work it came from; one opened somewhere else (another directory, the
-    /// home from a tab that is not there, another device's terminal) or
-    /// arriving from outside (a Shortcut, a URL, a moved session) is
-    /// appended. The cold-launch resume batch does not go through here: it
-    /// appends several at once and notifies every tab, not only the new ones.
+    /// `noteSceneActive()` gets no replay of it. Only ⌘T puts its tab right
+    /// after the active one, as a browser's does, so it lands beside the
+    /// work it came from; every other way in — ⌘N, the new-tab button and
+    /// its menu, a Shortcut, a URL, a moved session — appends. The
+    /// cold-launch resume batch does not go through here: it appends
+    /// several at once and notifies every tab, not only the new ones.
     private func adopt(_ tab: TerminalTab, afterActiveTab: Bool = false) -> TerminalTab {
         withAnimation(Self.tabTransition) {
             if afterActiveTab, let index = tabs.firstIndex(where: { $0.id == activeTabID }) {
@@ -450,21 +448,28 @@ final class TabManager: ObservableObject {
     /// Ghost Remote has no shell of its own: an origin on this device opens
     /// on the active tab's device, else the preferred paired one, and with
     /// no device paired it opens Settings ▸ Remote Access and no tab.
+    ///
+    /// `besideActiveTab` is ⌘T's alone (`adopt`).
     @discardableResult
-    func newTab(_ origin: Origin = .activeTab) -> TerminalTab? {
+    func newTab(_ origin: Origin = .activeTab, besideActiveTab: Bool = false) -> TerminalTab? {
         if AppEdition.isRemoteOnly, !origin.isRemote {
             guard let hostID = activeTab?.remoteHostID ?? RemoteTabDefaults.preferredHostID else {
                 terminalWindow?.interface.showRemoteAccess()
                 return nil
             }
-            let beside = if case .activeTab = origin { true } else { activeTab?.currentDirectory?.isHome == true }
-            return adopt(makeTab(remoteHostID: hostID), afterActiveTab: beside)
+            let tab = if case .activeTab = origin, let activeTab, activeTab.remoteHostID == hostID {
+                makeTab(besideRemote: activeTab, onHostID: hostID)
+            } else {
+                makeTab(remoteHostID: hostID)
+            }
+            return adopt(tab, afterActiveTab: besideActiveTab)
         }
         let tab = switch origin {
         case .activeTab:
-            // From a remote tab, ⌘T opens another shell on that device.
-            if let hostID = activeTab?.remoteHostID {
-                makeTab(remoteHostID: hostID)
+            // From a remote tab, ⌘T opens another shell on that device,
+            // where that tab's shell is.
+            if let activeTab, let hostID = activeTab.remoteHostID {
+                makeTab(besideRemote: activeTab, onHostID: hostID)
             } else {
                 makeTab(inheritDirectoryFrom: activeTab?.daemonSessionID)
             }
@@ -477,31 +482,20 @@ final class TabManager: ObservableObject {
         case let .remote(hostID, directory):
             makeTab(startDirectory: directory?.path, remoteHostID: hostID)
         }
-        return adopt(tab, afterActiveTab: opensBesideActiveTab(origin))
+        return adopt(tab, afterActiveTab: besideActiveTab)
     }
 
-    /// Whether `origin` is the active tab again — the same device and the
-    /// same directory — so the new tab belongs beside it. A directory the
-    /// active tab has not reported yet matches nothing but ⌘T.
-    private func opensBesideActiveTab(_ origin: Origin) -> Bool {
-        guard let activeTab else { return false }
-        let here = activeTab.currentDirectory
-        switch origin {
-        case .activeTab:
-            return true
-        case .home:
-            return !activeTab.isRemote && here?.isHome == true
-        case let .session(sessionID):
-            return !activeTab.isRemote && sessionID == activeTab.daemonSessionID
-        case let .directory(directory):
-            return !activeTab.isRemote && here?.path == directory.path
-        case let .remote(hostID, directory):
-            guard activeTab.remoteHostID == hostID else { return false }
-            if let directory {
-                return here?.path == directory.path
-            }
-            return here?.isHome == true
-        }
+    /// ⌘T from a remote tab: that device's daemon reads the directory from
+    /// its own session, as a local ⌘T does — the helper hands
+    /// `openSession` over whole. The directory the tab last reported goes
+    /// too, for a session the host no longer has (it ended, or the tab is
+    /// still reconnecting); the live session wins when both are there.
+    private func makeTab(besideRemote tab: TerminalTab, onHostID hostID: String) -> TerminalTab {
+        makeTab(
+            inheritDirectoryFrom: tab.remoteSessionID,
+            startDirectory: tab.currentDirectory?.path,
+            remoteHostID: hostID,
+        )
     }
 
     /// Closing the last tab leaves the window empty on purpose: the empty

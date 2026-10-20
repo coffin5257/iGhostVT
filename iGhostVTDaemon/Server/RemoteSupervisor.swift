@@ -2,7 +2,10 @@ import Darwin
 import Dispatch
 import XPC
 
-/// Owns `ighostvtd-remote`, the remote-access helper, while the switch is on.
+/// Owns `ighostvtd-remote`, the remote-access helper, while the switch is on
+/// — and a dormant one while it is off, started when the app asks about the
+/// paired devices, so they stay listed and removable without anything
+/// listening.
 ///
 /// The switch is a file (`flagPath`): present means on. The proxy reads it at launch — `RunAtLoad` is what brings the
 /// helper up after a boot or a login — and `setRemoteAccess` writes or
@@ -30,6 +33,8 @@ final class RemoteSupervisor {
 
     private var channel: IOChannel?
     private var childPID: pid_t = 0
+    /// The child runs with the switch off (`IOWire.dormantArgument`).
+    private var childIsDormant = false
     private var exitSource: DispatchSourceProcess?
     private var lastSpawn = DispatchTime(uptimeNanoseconds: 0)
     private var respawnScheduled = false
@@ -99,10 +104,12 @@ final class RemoteSupervisor {
         let operation = iGhostVTOperation(rawValue: xpc_dictionary_get_uint64(message, iGhostVTWireKey.operation))
         if operation == .setRemoteAccess {
             let enabled = xpc_dictionary_get_bool(message, iGhostVTWireKey.enabled)
+            let wasDormant = childIsDormant && channel != nil
             setEnabled(enabled)
             // Off is answered here: the helper is on its way out, and it
-            // would still say it is on.
-            guard enabled else { return completion(Self.offlineStatus(enabled: false)) }
+            // would still say it is on. So is on over a dormant helper,
+            // which is on its way out too and would still say it is off.
+            guard enabled, !wasDormant else { return completion(Self.offlineStatus(enabled: enabled)) }
             // What the switch now says, from the helper when it is up.
             let status = xpc_dictionary_create(nil, nil, 0)
             xpc_dictionary_set_uint64(status, iGhostVTWireKey.version, iGhostVTProtocol.version)
@@ -113,6 +120,11 @@ final class RemoteSupervisor {
     }
 
     private func forwardOrCompose(_ message: xpc_object_t, completion: @escaping (xpc_object_t) -> Void) {
+        // With the switch off the paired devices are still the helper's to
+        // tell, so it is started for the asking, dormant.
+        if channel == nil, childPID == 0, !isEnabled {
+            try? spawn(dormant: true)
+        }
         guard let channel else {
             completion(Self.offlineStatus(enabled: isEnabled))
             return
@@ -152,9 +164,13 @@ final class RemoteSupervisor {
                 }
             }
             DaemonFileLog.log("remote access turned on")
-            if channel == nil {
+            if channel == nil, childPID == 0 {
                 spawnOrRetry()
+            } else if childIsDormant {
+                // Its exit brings the real one up (`handleLinkClosed`).
+                stop()
             }
+            // A child still being reaped is respawned by `reap`.
         } else {
             if let directory {
                 unlinkat(directory, Self.flagName, 0)
@@ -179,7 +195,7 @@ final class RemoteSupervisor {
         }
     }
 
-    private func spawn() throws {
+    private func spawn(dormant: Bool = false) throws {
         lastSpawn = .now()
         var pair: [Int32] = [-1, -1]
         guard socketpair(AF_UNIX, SOCK_STREAM, 0, &pair) == 0 else {
@@ -201,7 +217,10 @@ final class RemoteSupervisor {
         defer { posix_spawnattr_destroy(&attributes) }
         posix_spawnattr_setflags(&attributes, Self.closeOnExecByDefault)
 
-        let arguments = [executablePath, IOWire.socketArgument, String(IOWire.socketDescriptor)]
+        var arguments = [executablePath, IOWire.socketArgument, String(IOWire.socketDescriptor)]
+        if dormant {
+            arguments.append(IOWire.dormantArgument)
+        }
         var argv: [UnsafeMutablePointer<CChar>?] = arguments.map { strdup($0) }
         argv.append(nil)
         defer { argv.forEach { free($0) } }
@@ -215,6 +234,7 @@ final class RemoteSupervisor {
             throw iGhostVTDaemonError.transportFailure
         }
         childPID = pid
+        childIsDormant = dormant
         let channel = IOChannel(descriptor: parentEnd, queue: queue)
         channel.onFrame = { [weak self] header, payload in
             self?.handleFrame(header, payload: payload)
@@ -231,7 +251,7 @@ final class RemoteSupervisor {
         }
         self.exitSource = exitSource
         exitSource.activate()
-        DaemonFileLog.log("remote helper spawned as pid \(pid)")
+        DaemonFileLog.log("remote helper spawned as pid \(pid)\(dormant ? ", dormant" : "")")
     }
 
     private func handleFrame(_ header: IOWire.Header, payload: UnsafeRawBufferPointer) {

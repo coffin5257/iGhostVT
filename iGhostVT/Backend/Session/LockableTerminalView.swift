@@ -74,6 +74,10 @@ final class LockableTerminalView: TerminalView {
     /// sent while it connects goes nowhere. False when the wait is given up.
     var awaitConnection: (@MainActor () async -> Bool)?
 
+    /// The terminal's width in columns, nil before the surface reported
+    /// one. Copy as One Line reads where a row ends against it.
+    var terminalColumns: (@MainActor () -> Int?)?
+
     /// What the terminal offers UIKit as its keyboard while locked. An empty
     /// view keeps first-responder status — and with it the hardware key
     /// path — while leaving nothing to raise.
@@ -421,7 +425,7 @@ final class LockableTerminalView: TerminalView {
         override func touchSelectionMenuItems(for context: TerminalTouchSelectionMenuContext) -> [UIMenuElement] {
             var items = routingPaste(super.touchSelectionMenuItems(for: context))
             var extras: [UIMenuElement] = []
-            if let line = Self.oneLine(context.selectedText) {
+            if let line = OneLineText.join(context.selectedText, columns: terminalColumns?()) {
                 extras.append(UIAction(
                     title: String(localized: "Copy as One Line"),
                     image: UIImage(systemName: "arrow.right.to.line"),
@@ -443,21 +447,6 @@ final class LockableTerminalView: TerminalView {
             let copy = items.firstIndex { ($0 as? UIAction)?.identifier.rawValue == "terminal.copy" }
             items.insert(contentsOf: extras, at: copy.map { $0 + 1 } ?? 0)
             return items
-        }
-
-        /// The selection with every row trimmed at both ends and the line
-        /// breaks between them taken out, or nil when it is one row. A
-        /// program that lays out its own text (Claude Code) breaks a long
-        /// command or path over rows with no soft-wrap mark, so the plain
-        /// copy keeps those breaks and a shell reads each row as a command
-        /// of its own. Nothing is put between the rows: a break inside a
-        /// path must close up, and where a space was lost the person can
-        /// see it before running anything.
-        static func oneLine(_ text: String) -> String? {
-            let rows = text.split(whereSeparator: \.isNewline)
-            guard rows.count > 1 else { return nil }
-            let line = rows.map { $0.trimmingCharacters(in: .whitespaces) }.joined()
-            return line.isEmpty ? nil : line
         }
 
         /// The selection as one http(s) link, or nil. The whitespace around

@@ -254,8 +254,14 @@ final class TerminalWindow: UIWindow, AppCommandResponder {
 
     // MARK: - File
 
-    func newTab(_: Any?) {
-        _ = tabManager.newTab()
+    /// ⌘T copies the active tab — its device, its directory — right beside
+    /// it. ⌘N, its hidden alias, is a fresh local shell at the end.
+    func newTab(_ sender: Any?) {
+        if (sender as? UIKeyCommand)?.propertyList as? String == AppMenus.aliasPropertyList {
+            _ = tabManager.newTab(.home)
+        } else {
+            _ = tabManager.newTab(besideActiveTab: true)
+        }
     }
 
     func newWindow(_: Any?) {

@@ -88,6 +88,13 @@ final class RemoteAccessModel: ObservableObject {
 
     private func apply(_ status: RemoteAccessStatus) {
         hasLoaded = true
+        var status = status
+        // The daemon answers for a helper that is not up yet (no host id)
+        // without the devices; they are still paired, so the list stays
+        // until the helper says otherwise.
+        if status.hostID == nil, !status.isUnavailable {
+            status.devices = self.status.devices
+        }
         if status.isEnabled, status.state == .listening, UserDefaults.standard.bool(forKey: Self.namePendingKey) {
             sendName()
         }

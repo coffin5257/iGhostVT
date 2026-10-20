@@ -34,8 +34,8 @@ struct ObservedTabTitle: View {
     }
 }
 
-/// The dim line beside the title: what the session reports about itself
-/// while the title itself stays the stable process name.
+/// The dim line beside the title: the directory's last component
+/// (`TerminalTab.secondaryTitle`).
 struct ObservedTabSubtitle: View {
     @ObservedObject var tab: TerminalTab
 

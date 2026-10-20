@@ -49,12 +49,6 @@ struct TerminalDirectory: Hashable, Codable, Sendable {
         return String(trimmed[trimmed.index(after: slash)...])
     }
 
-    /// What goes under `name`: the whole spelling, unless it says nothing
-    /// more (`/`, `@jb`).
-    var nameSubtitle: String? {
-        name == label ? nil : label
-    }
-
     /// Whether this is the session user's home. The new-tab menu's first
     /// row already opens there, so no other row should offer it again, and
     /// the daemon spelling it `~` is the whole test.

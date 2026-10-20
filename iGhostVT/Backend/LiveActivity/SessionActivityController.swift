@@ -126,7 +126,7 @@ final class SessionActivityController {
         TerminalSessionAttributes.Session(
             id: tab.id.uuidString,
             title: tab.reportedTitle,
-            directory: Self.displayPath(of: tab),
+            directory: tab.displayDirectory,
             shell: tab.isRemote ? "" : Self.configuredShellName,
             process: tab.store.processName.isEmpty ? nil : tab.store.processName,
             number: number,
@@ -152,13 +152,6 @@ final class SessionActivityController {
         case .connected, .elsewhere: .live
         case .failed: .failed
         }
-    }
-
-    /// Where the widget says the tab is. The daemon's reading first — it is
-    /// the kernel's, so it is right for a shell that reports no OSC 7 at
-    /// all — and the shell's own report while the session has not said yet.
-    private static func displayPath(of tab: TerminalTab) -> String {
-        tab.currentDirectory?.label ?? TerminalDirectory.abbreviate(tab.terminal.workingDirectory)
     }
 
     #if !targetEnvironment(macCatalyst) && canImport(ActivityKit)

@@ -93,16 +93,9 @@ enum NewTabMenuElements {
         }
     }
 
-    /// A recent directory's row: its folder's name, the whole spelling
-    /// under it. iOS 15 has no subtitle, so there the title is the whole
-    /// spelling, as it always was.
+    /// A recent directory's row: its folder's name alone.
     private static func recentRow(_ directory: TerminalDirectory, _ action: UIAction) -> UIAction {
-        if #available(iOS 16.0, *) {
-            action.title = directory.name
-            action.subtitle = directory.nameSubtitle
-        } else {
-            action.title = directory.label
-        }
+        action.title = directory.name
         return action
     }
 

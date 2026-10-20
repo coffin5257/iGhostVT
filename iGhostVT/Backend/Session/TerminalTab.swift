@@ -115,6 +115,14 @@ final class TerminalTab: ObservableObject, Identifiable {
         store.currentDirectory
     }
 
+    /// Where the tab is, as the Live Activity and the tab's second line
+    /// say it. The daemon's reading first — it is the kernel's, so it is
+    /// right for a shell that reports no OSC 7 at all — and the shell's own
+    /// report while the session has not said yet. Empty when neither has.
+    var displayDirectory: String {
+        currentDirectory?.label ?? TerminalDirectory.abbreviate(terminal.workingDirectory)
+    }
+
     /// `inheritDirectoryFrom` is the daemon session of the tab this one was
     /// opened from; a resumed tab ignores it, since its shell already sits
     /// somewhere. The transport factory sends it on every open, so a shell
@@ -251,6 +259,8 @@ final class TerminalTab: ObservableObject, Identifiable {
             store.$inferredTitle.removeDuplicates().map { _ in () },
             store.$processName.removeDuplicates().map { _ in () },
         )
+        .merge(with: terminal.$workingDirectory.removeDuplicates().map { _ in () })
+        .merge(with: store.$currentDirectory.removeDuplicates().map { _ in () })
         .throttle(for: Self.retitleInterval, scheduler: DispatchQueue.main, latest: true)
         .sink { [weak self] in
             self?.publishRetitle()
@@ -316,6 +326,9 @@ final class TerminalTab: ObservableObject, Identifiable {
             let view = LockableTerminalView(frame: .zero)
             view.awaitConnection = { [weak self] in
                 await self?.store.waitUntilConnected() ?? false
+            }
+            view.terminalColumns = { [weak self] in
+                self?.store.viewportColumns
             }
             view.isInteractionLocked = self?.isLocked ?? false
             view.isSoftwareKeyboardLocked = self?.isKeyboardLocked ?? false
@@ -430,40 +443,22 @@ final class TerminalTab: ObservableObject, Identifiable {
         return store.processName.isEmpty ? store.endpointDescription : store.processName
     }
 
-    /// The line under the title: the foreground process's name ("zsh",
-    /// "vim", "grok"), which the daemon reports and which stays short and
-    /// stable while programs retitle at will. Never repeats `displayTitle`:
-    /// when the process name is already the first line (or there is none),
-    /// this is the page's own last non-empty row, so an untitled session
-    /// still reads as what it is doing rather than as "zsh" twice.
+    /// The line beside the title: the last component of the directory
+    /// the tab is in, as the Live Activity lists it — never the
+    /// foreground program's name, which for some programs is only a
+    /// version number. A shell on another device says which one.
     var secondaryTitle: String {
-        let process = store.processName
-        let line = process.isEmpty || process == displayTitle ? pageFallbackLine : process
-        // A shell on another device says which one, wherever the tab shows.
+        let directory = displayDirectory
+        let name = directory.isEmpty ? "" : TerminalDirectory(path: directory).name
         if let remoteHostName {
-            return line.isEmpty ? remoteHostName : "\(line) · \(remoteHostName)"
+            return name.isEmpty ? remoteHostName : "\(name) · \(remoteHostName)"
         }
-        return line
+        return name
     }
 
     /// The paired device's name, for a remote tab.
     var remoteHostName: String? {
         remoteHostID.flatMap { PairedRemoteHostStore.host(id: $0)?.displayName }
-    }
-
-    /// The last non-empty row of the viewport, and the endpoint only while
-    /// the page is still blank. Computed on render; `store.pageGeneration`
-    /// is what re-renders the rows while output flows, so this follows the
-    /// page at that pace rather than per chunk.
-    private var pageFallbackLine: String {
-        _ = store.pageGeneration
-        for line in snapshotPreview().split(separator: "\n", omittingEmptySubsequences: false).reversed() {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                return trimmed
-            }
-        }
-        return store.endpointDescription
     }
 
     /// The reported title without the endpoint fallback, for the places

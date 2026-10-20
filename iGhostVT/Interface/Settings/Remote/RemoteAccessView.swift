@@ -20,8 +20,9 @@ struct RemoteAccessView: View {
         Form {
             thisDeviceSection
             // Ghost Remote is never a host: it has no daemon to open
-            // terminals in.
-            if !AppEdition.isRemoteOnly, model.isEnabled {
+            // terminals in. Switched off, the devices paired so far are
+            // still listed — off stops them connecting, it forgets nobody.
+            if !AppEdition.isRemoteOnly, model.isEnabled || !model.status.devices.isEmpty {
                 allowedDevicesSection
             }
             // Only once a .vtrpsc file has been opened: no relay, no section.
@@ -170,13 +171,15 @@ struct RemoteAccessView: View {
                     model.revoke(model.status.devices[index])
                 }
             }
-            Button("Pair New Device…") {
-                Task {
-                    await model.beginPairing()
-                    isShowingPairingCode = true
+            if model.isEnabled {
+                Button("Pair New Device…") {
+                    Task {
+                        await model.beginPairing()
+                        isShowingPairingCode = true
+                    }
                 }
+                .disabled(model.status.state != .listening)
             }
-            .disabled(model.status.state != .listening)
         } header: {
             Text("Authorized Devices")
                 .font(DS.Font.caption)
