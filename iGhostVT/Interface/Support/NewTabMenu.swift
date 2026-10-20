@@ -187,7 +187,7 @@ struct NewTabMenuContent: View {
         if !choices.recents.isEmpty {
             Section {
                 ForEach(choices.recents, id: \.path) { directory in
-                    row(directory.name, subtitle: directory.nameSubtitle, systemImage: "clock", origin: .directory(directory))
+                    row(directory.name, systemImage: "clock", origin: .directory(directory))
                 }
             } header: {
                 Text("Recent")
@@ -286,7 +286,6 @@ struct NewTabMenuContent: View {
         ForEach(recents, id: \.path) { directory in
             row(
                 directory.name,
-                subtitle: directory.nameSubtitle,
                 systemImage: "clock",
                 origin: .remote(hostID: host.id, directory: directory),
             )
@@ -316,11 +315,9 @@ struct NewTabMenuContent: View {
     }
 
     /// A path is not copy: `title` is a string the daemon reported, so it
-    /// takes the plain-string label rather than a localizable key. A
-    /// second line of text in a menu row is its subtitle.
+    /// takes the plain-string label rather than a localizable key.
     private func row(
         _ title: String,
-        subtitle: String? = nil,
         systemImage: String,
         origin: TabManager.Origin,
     ) -> some View {
@@ -330,9 +327,6 @@ struct NewTabMenuContent: View {
         } label: {
             SwiftUI.Label {
                 Text(verbatim: title)
-                if let subtitle {
-                    Text(verbatim: subtitle)
-                }
             } icon: {
                 Image(systemName: systemImage)
             }

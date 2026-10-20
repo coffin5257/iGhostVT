@@ -35,6 +35,9 @@ enum IOWire {
     /// argument that names it.
     static let socketDescriptor: Int32 = 3
     static let socketArgument = "--socket-fd"
+    /// Starts `ighostvtd-remote` with the switch off: it answers about the
+    /// paired devices and opens nothing to the network.
+    static let dormantArgument = "--dormant"
     static let executableName = "ighostvtd-io"
 
     enum Kind: UInt8 {

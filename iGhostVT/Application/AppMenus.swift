@@ -345,6 +345,10 @@ enum AppMenus {
     /// duplicates"). The value only has to differ from the twin's `nil`;
     /// `TerminalWindow` reads a `propertyList` as an `Int` tab index and
     /// ignores this string.
+    /// What a hidden alias carries, so an action can tell its alias key
+    /// from its listed one (⌘N from ⌘T).
+    static let aliasPropertyList = "alias"
+
     private static func hidden(_ action: Selector) -> UIKeyCommand? {
         let shortcut = KeyShortcuts.alias(action)
         guard shortcut.isEnabled else { return nil }
@@ -353,7 +357,7 @@ enum AppMenus {
             action: action,
             input: shortcut.input,
             modifierFlags: shortcut.modifiers,
-            propertyList: "alias",
+            propertyList: aliasPropertyList,
             attributes: .hidden,
         )
     }

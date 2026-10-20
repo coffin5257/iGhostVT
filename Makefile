@@ -303,6 +303,11 @@ harness:
 		$$(find "$(ROOT_DIR)/Tests/Zmodem" -name '*.swift' | sort) \
 		-o "$$harness_dir/zmodem" && \
 	"$$harness_dir/zmodem" && \
+	xcrun --sdk macosx swiftc -swift-version 5 \
+		"$(ROOT_DIR)/iGhostVT/Backend/Session/OneLineText.swift" \
+		$$(find "$(ROOT_DIR)/Tests/OneLineText" -name '*.swift' | sort) \
+		-o "$$harness_dir/one-line" && \
+	"$$harness_dir/one-line" && \
 	$(MAKE) --no-print-directory relay-harness
 
 # The relay end to end (Tests/RelayHarness): the Go server under Relay/ built

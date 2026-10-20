@@ -15,6 +15,12 @@ final class RemoteService: RelayLinkHost {
         autoreleaseFrequency: .workItem,
     )
     private let management: IOChannel
+    /// Spawned while the switch is off, only so the app can list and remove
+    /// the paired devices: no listener, no advertisement, no relay, and gone
+    /// once nobody has asked anything for `dormantIdleSeconds`.
+    private let isDormant: Bool
+    private static let dormantIdleSeconds = 60
+    private var dormantIdleGeneration = 0
     private(set) var store = RemoteStore.load()
     private let deviceName = RemoteHostName.current()
 
@@ -73,8 +79,9 @@ final class RemoteService: RelayLinkHost {
 
     private var pairing: PairingWindow?
 
-    init(managementDescriptor: Int32) {
+    init(managementDescriptor: Int32, isDormant: Bool = false) {
         management = IOChannel(descriptor: managementDescriptor, queue: queue)
+        self.isDormant = isDormant
     }
 
     func start() {
@@ -92,6 +99,12 @@ final class RemoteService: RelayLinkHost {
                 self?.queue.async {
                     self?.forwardLog(line)
                 }
+            }
+            guard !isDormant else {
+                RemoteLog.log("dormant as uid \(getuid()), \(store.devices.count) paired device(s)")
+                state = .off
+                extendDormancy()
+                return
             }
             RemoteLog.log("starting as uid \(getuid()), host \(store.hostID), \(store.devices.count) paired device(s)")
             connectAnchor()
@@ -113,6 +126,18 @@ final class RemoteService: RelayLinkHost {
             restartListener()
         }
         pathMonitor.start(queue: queue)
+    }
+
+    /// A dormant helper lives as long as it is asked things: the settings
+    /// page polls every few seconds while it is open.
+    private func extendDormancy() {
+        dormantIdleGeneration += 1
+        let generation = dormantIdleGeneration
+        queue.asyncAfter(deadline: .now() + .seconds(Self.dormantIdleSeconds)) { [weak self] in
+            guard let self, generation == dormantIdleGeneration else { return }
+            RemoteLog.log("dormant and idle, exiting")
+            exit(EXIT_SUCCESS)
+        }
     }
 
     // MARK: - The daemon
@@ -535,6 +560,38 @@ final class RemoteService: RelayLinkHost {
     private func handleManagement(_ header: IOWire.Header, payload: UnsafeRawBufferPointer) {
         guard header.kind == .request, let message = IOCodec.decode(payload) else { return }
         let operation = iGhostVTOperation(rawValue: xpc_dictionary_get_uint64(message, iGhostVTWireKey.operation))
+        if isDormant {
+            extendDormancy()
+        }
+        let code = isDormant ? handleDormant(operation, message) : handle(operation, message)
+        guard header.tag != 0 else { return }
+        let reply = statusReply()
+        xpc_dictionary_set_int64(reply, iGhostVTWireKey.code, code.rawValue)
+        _ = management.send(.reply, peer: header.peer, tag: header.tag, object: reply)
+    }
+
+    /// While the switch is off the devices can be seen, renamed for, and
+    /// removed — nothing that opens anything to the network.
+    private func handleDormant(_ operation: iGhostVTOperation?, _ message: xpc_object_t) -> iGhostVTReplyCode {
+        switch operation {
+        case .remoteStatus:
+            return .success
+        case .revokeRemoteDevice:
+            let deviceID = xpc_dictionary_get_string(message, iGhostVTWireKey.deviceID).map { String(cString: $0) }
+            guard let deviceID, store.remove(deviceID: deviceID) else { return .invalidRequest }
+            RemoteLog.log("revoked device \(deviceID)")
+            return .success
+        case .setHostName:
+            let requested = xpc_dictionary_get_string(message, iGhostVTWireKey.hostName)
+                .map { String(cString: $0).trimmingCharacters(in: .whitespacesAndNewlines) } ?? ""
+            store.setHostName(requested.isEmpty ? nil : RemoteAccess.sanitizedName(requested))
+            return .success
+        default:
+            return .invalidRequest
+        }
+    }
+
+    private func handle(_ operation: iGhostVTOperation?, _ message: xpc_object_t) -> iGhostVTReplyCode {
         var code = iGhostVTReplyCode.success
         switch operation {
         case .remoteStatus:
@@ -594,17 +651,14 @@ final class RemoteService: RelayLinkHost {
         default:
             code = .invalidRequest
         }
-        guard header.tag != 0 else { return }
-        let reply = statusReply()
-        xpc_dictionary_set_int64(reply, iGhostVTWireKey.code, code.rawValue)
-        _ = management.send(.reply, peer: header.peer, tag: header.tag, object: reply)
+        return code
     }
 
     private func statusReply() -> xpc_object_t {
         expirePairingIfNeeded()
         let reply = xpc_dictionary_create(nil, nil, 0)
         xpc_dictionary_set_uint64(reply, iGhostVTWireKey.version, iGhostVTProtocol.version)
-        xpc_dictionary_set_bool(reply, iGhostVTWireKey.enabled, true)
+        xpc_dictionary_set_bool(reply, iGhostVTWireKey.enabled, !isDormant)
         xpc_dictionary_set_string(reply, iGhostVTWireKey.remoteState, state.rawValue)
         if let failureMessage {
             xpc_dictionary_set_string(reply, iGhostVTWireKey.errorMessage, failureMessage)
@@ -612,8 +666,12 @@ final class RemoteService: RelayLinkHost {
         xpc_dictionary_set_string(reply, iGhostVTWireKey.hostID, store.hostID)
         xpc_dictionary_set_string(reply, iGhostVTWireKey.hostName, hostName)
         xpc_dictionary_set_string(reply, iGhostVTWireKey.appVersion, RemoteAccess.appVersion)
-        let relayConfiguration = store.relay.flatMap { try? RelayConfiguration(data: $0) }
-        xpc_dictionary_set_string(reply, iGhostVTWireKey.relayFingerprint, relayConfiguration?.fingerprint ?? "")
+        // Dormant, the relay is not the helper's to report: no fingerprint
+        // is the app's sign that nothing runs to hand one to.
+        let relayConfiguration = isDormant ? nil : store.relay.flatMap { try? RelayConfiguration(data: $0) }
+        if !isDormant {
+            xpc_dictionary_set_string(reply, iGhostVTWireKey.relayFingerprint, relayConfiguration?.fingerprint ?? "")
+        }
         if let relayConfiguration {
             xpc_dictionary_set_string(reply, iGhostVTWireKey.relayName, relayConfiguration.name)
             xpc_dictionary_set_string(reply, iGhostVTWireKey.relayState, (relay?.state ?? .failed).rawValue)

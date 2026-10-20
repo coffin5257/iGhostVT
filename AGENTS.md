@@ -22,8 +22,12 @@ which launchd never sized — so a session's buffers cannot jetsam the daemon.
 - **The app never spawns processes.** `ighostvtd-io` forks the shells
   (`forkpty`+`execve`), and on the Mac the three tools its update needs
   (`ditto`, `xattr`, `open`; `MacUpdater`); `ighostvtd` spawns only its two
-  children — `ighostvtd-io` (`IOSupervisor`) and, while remote access is
-  on, `ighostvtd-remote` (`RemoteSupervisor`) — via `posix_spawn`. Peer
+  children — `ighostvtd-io` (`IOSupervisor`) and `ighostvtd-remote`
+  (`RemoteSupervisor`), which runs while remote access is on, and dormant
+  (`--dormant`: no listener, no Bonjour, no relay; gone after a minute
+  unasked) while it is off and the app asks about the paired devices, so
+  turning the switch off stops them connecting and forgets nobody — the
+  devices stay listed and removable — via `posix_spawn`. Peer
   authentication is still the daemon's, gated by the kernel audit token
   before a byte is forwarded. Keep that boundary; don't add process APIs to
   the app or to the proxy.
@@ -65,7 +69,12 @@ which launchd never sized — so a session's buffers cannot jetsam the daemon.
   (`onTextSelectionRequest`) the app's own selection sheet hung off, so the
   app has no selection UI of its own; customise the menus through
   `touchMenuItems(for:)` / `touchSelectionMenuItems(for:)` on
-  `LockableTerminalView`, never by bringing a sheet back. Match an item
+  `LockableTerminalView`, never by bringing a sheet back. Copy as One Line
+  is `OneLineText.join` (tested by `Tests/OneLineText`): a program that lays
+  out its own text drops the space where it breaks a row, so a row that
+  stops short of the terminal's width, or ends padded, joins with a space,
+  and one that fills it closes up only when the word across the break would
+  not have fit a row — a cut path or link, not a word boundary. Match an item
   there by its identifier (`terminal.copy`, `terminal.paste`, …), never by
   its title: since 2.2.2026100701 the titles are localized, and they follow
   the user's language only because `Info.plist` sets
@@ -750,7 +759,8 @@ is cut and reconnects as after any interruption. Both plists say
 `RunAtLoad` + `KeepAlive = {SuccessfulExit = false}` + `MachServices`: a
 crash restarts, the idle exit stands, the next lookup demand-launches, and
 `make check` holds both to it. While remote access is on,
-`ighostvtd-remote` keeps one connection open for as long as it runs, so the
+`ighostvtd-remote` keeps one connection open for as long as it runs (a
+dormant one holds none), so the
 daemon is resident exactly as long as the switch is on — the daemon itself
 knows nothing about it. `shutdown` stays in the protocol for any client
 that wants the same exit sooner.
@@ -996,10 +1006,13 @@ Tab titles have three sources. The daemon's is the one always there: each
 session polls `tcgetpgrp` on its PTY (and re-checks as output drains, rate
 limited — the drain sees one check per 64 KiB otherwise),
 resolves the foreground process group leader's `proc_name`, and pushes it as
-event 102 — also stated in every open/attach reply — so
-`TerminalTab.secondaryTitle`, the dim line under the title, is a short stable
-name ("zsh", "vim", "grok") no matter how often the program retitles, and a
-session that reports nothing is titled by it. Ghostty's shell integration is the
+event 102 — also stated in every open/attach reply — and a session that
+reports nothing is titled by it. It is never the dim line beside the title
+(`TerminalTab.secondaryTitle`): some programs' binary is only a version
+number (Claude Code's reads `2.1.304`), so that line is the last component
+of the tab's directory (`displayDirectory`, the same one the Live Activity
+lists, whose row reads title then that component too), plus the device's
+name for a remote tab. Ghostty's shell integration is the
 second: the daemon injects it (`ShellIntegration`) and the .deb ships
 libghostty's own scripts to `/usr/share/ighostvt/shell-integration`, so the
 shell reports OSC 2 (command), OSC 7 (cwd), OSC 133 (prompts) by itself.
@@ -1139,11 +1152,12 @@ there too, given the touch when the finger held still to 0.6 s, and on an
 iPad it opened under a reorder that had not moved yet; it is gone, not
 retimed.
 
-A tab that copies the active one — ⌘T, or a menu row naming the active
-tab's own device and directory — goes right after it, as a browser's
-does; every other new tab — another directory, another device's
-terminal, a Shortcut, a URL, a moved session — is appended
-(`TabManager.opensBesideActiveTab`).
+⌘T copies the active tab — its device, and its directory (a remote tab
+names its session to the far daemon and its last reported directory as
+the fallback) — and goes right after it, as a browser's does. Every other
+new tab — ⌘N (this device's home), a menu row, another device's terminal,
+a Shortcut, a URL, a moved session — is appended
+(`TabManager.newTab(_:besideActiveTab:)`).
 
 Every `+` is a `NewTabMenu`: the only decision a new terminal has is where
 its shell starts, so the control opens a menu of directories instead of a

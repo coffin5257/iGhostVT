@@ -3,7 +3,8 @@ import Dispatch
 import Foundation
 
 // `ighostvtd-remote`: remote access for one host. Spawned and supervised by
-// `ighostvtd` (`RemoteSupervisor`) while the switch is on, with the
+// `ighostvtd` (`RemoteSupervisor`) while the switch is on — and, dormant,
+// while it is off and the app asks about the paired devices — with the
 // management socket on descriptor 3. It listens on `RemoteAccess.port`,
 // advertises the host over Bonjour, pairs new devices, and relays each
 // paired device's requests to the daemon over a connection of its own —
@@ -29,14 +30,17 @@ guard RemotePrivileges.dropToSessionUser() else {
 }
 
 var descriptor = IOWire.socketDescriptor
+var isDormant = false
 var arguments = CommandLine.arguments.dropFirst()
 while let argument = arguments.popFirst() {
     if argument == IOWire.socketArgument, let value = arguments.popFirst().flatMap(Int32.init) {
         descriptor = value
+    } else if argument == IOWire.dormantArgument {
+        isDormant = true
     }
 }
 
-let service = RemoteService(managementDescriptor: descriptor)
+let service = RemoteService(managementDescriptor: descriptor, isDormant: isDormant)
 service.start()
 withExtendedLifetime(service) {
     dispatchMain()

@@ -152,12 +152,12 @@ private struct SessionRow: View {
                 .lineLimit(1)
                 .layoutPriority(1)
             Spacer(minLength: Spacing.line)
-            if !session.directory.isEmpty {
-                Text(verbatim: session.directory)
+            if !session.directoryName.isEmpty {
+                Text(verbatim: session.directoryName)
                     .font(.footnote.monospaced())
                     .opacity(0.5)
                     .lineLimit(1)
-                    .truncationMode(.head)
+                    .truncationMode(.middle)
             }
         }
         .accessibilityElement(children: .combine)
@@ -167,15 +167,16 @@ private struct SessionRow: View {
 
 @available(iOS 16.2, *)
 extension TerminalSessionAttributes.Session {
-    /// The program in front first — it is the daemon's short, stable name
-    /// — then whatever the shell titled itself, then the configured shell,
-    /// then the session's number.
+    /// Whatever the shell titled itself first, as the tab's own title
+    /// reads (`TerminalTab.displayTitle`), then the program in front — the
+    /// daemon's short name, which for some programs is only a version
+    /// number — then the configured shell, then the session's number.
     var name: String {
-        if let process, !process.isEmpty {
-            return process
-        }
         if !title.isEmpty {
             return title
+        }
+        if let process, !process.isEmpty {
+            return process
         }
         if !shell.isEmpty {
             return shell
@@ -184,6 +185,16 @@ extension TerminalSessionAttributes.Session {
             return String(localized: "Session \(number)", comment: "A session the widget has no other name for")
         }
         return "—"
+    }
+
+    /// The directory's last component, as the tab's subtitle shows it
+    /// (`TerminalDirectory.name`): `~`, `/` and `@jb` stay whole.
+    var directoryName: String {
+        let trimmed = directory.hasSuffix("/") && directory.count > 1 ? String(directory.dropLast()) : directory
+        guard let slash = trimmed.lastIndex(of: "/"), slash != trimmed.index(before: trimmed.endIndex) else {
+            return trimmed
+        }
+        return String(trimmed[trimmed.index(after: slash)...])
     }
 }
 

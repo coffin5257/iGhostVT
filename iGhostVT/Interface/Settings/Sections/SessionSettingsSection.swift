@@ -38,10 +38,10 @@ struct SessionSettingsSection: View {
         } footer: {
             if !AppEdition.isRemoteOnly {
                 if heldByRemoteAccess {
-                    Text("Background Activities keeps your terminals running. It stays on while Remote Access is on, so paired devices can reach them.")
+                    Text("Background Activities keeps your sessions running after you quit the app. It stays on while Remote Access is on, so paired devices can reach them.")
                         .font(DS.Font.detail)
                 } else {
-                    Text("Background Activities keeps your terminals running. With it off, shells and the tasks they run end when the app quits.")
+                    Text("Background Activities keeps your sessions running after you quit the app. With it off, shells and the tasks they run end when the app quits.")
                         .font(DS.Font.detail)
                 }
             }

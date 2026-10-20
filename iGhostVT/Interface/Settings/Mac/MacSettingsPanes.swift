@@ -109,16 +109,17 @@ import SwiftUI
                     if heldByRemoteAccess {
                         MacSettingsNote(
                             """
-                            Background Activities keeps your terminals running. It \
-                            stays on while Remote Access is on, so paired devices \
-                            can reach them.
+                            Background Activities keeps your sessions running after \
+                            you quit the app. It stays on while Remote Access is on, \
+                            so paired devices can reach them.
                             """,
                         )
                     } else {
                         MacSettingsNote(
                             """
-                            Background Activities keeps your terminals running. With it \
-                            off, shells and the tasks they run end when the app quits.
+                            Background Activities keeps your sessions running after \
+                            you quit the app. With it off, shells and the tasks they \
+                            run end when the app quits.
                             """,
                         )
                     }
