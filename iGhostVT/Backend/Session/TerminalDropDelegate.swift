@@ -245,6 +245,12 @@ final class TerminalDropDelegate: NSObject, UIDropInteractionDelegate {
                 }
             }
             if isLink, let url = await loadURL() {
+                // Dragged text registers a link as well — any `word:`
+                // parses as one, percent-encoded since iOS 17 — and pasted
+                // that way `Worker: 04` arrived as `Worker:%2004`.
+                if isText, let text = await loadText(), TerminalDropDelegate.isReading(of: text, url) {
+                    return .text(text)
+                }
                 return .text(url.absoluteString)
             }
             if isText || fileType == nil, let text = await loadText() {
@@ -504,6 +510,17 @@ final class TerminalDropDelegate: NSObject, UIDropInteractionDelegate {
             }
             return candidate
         }
+    }
+
+    /// Whether `url` spells nothing but `text`: equal once each is
+    /// percent-decoded, which undoes whichever encoding the parse chose. The
+    /// library's paste applies the same rule (`TerminalPasteboardContent`,
+    /// internal there).
+    nonisolated static func isReading(of text: String, _ url: URL) -> Bool {
+        func decoded(_ string: String) -> String {
+            (string.removingPercentEncoding ?? string).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return decoded(url.absoluteString) == decoded(text)
     }
 
     /// A C0 or C1 control, or DEL: what the shell escape cannot make inert.
