@@ -691,7 +691,12 @@ why `OpenNewTabIntent` goes through `withConnection` first. Foreground
 intents (`openAppWhenRun`) go through `ShortcutBridge`, which picks a
 scene (the one showing the session, else the frontmost) because there is
 one `TabManager` per window; it also answers `ighostvt://session/<id>` and
-`ighostvt://new`, and nothing in a URL ever reaches a shell. Run Terminal
+`ighostvt://new`, and `ighostvt://new?directory=<canonical-path>` for a local
+folder. `TerminalLink` rejects commands, unknown or duplicated query fields,
+relative paths, embedded NULs, missing folders and non-directories; it resolves
+symlinks before handing the directory to `TabManager.newTab(.directory)`.
+Ghost Remote refuses this local-directory form. Nothing in a URL is typed into
+a shell. `Tests/TerminalLink` covers this public navigation boundary. Run Terminal
 Command decides "done" as *foreground is the shell again and the transcript
 changed* — a fast command can finish between two polls, so the shell flag
 alone would report the old prompt as the result. Intent strings live in
@@ -964,9 +969,11 @@ falls back to the plan's home, never to launchd's `/`. The iOS SDK ships no
 `ProcVnodePathInfo`.
 
 The new-tab menu needs the other half of that — a directory whose session is
-long gone — so `startDirectory` names one outright. Only a path the daemon
-itself reported may go there (`TerminalDirectory.path`, handed straight
-back); the app composes none, `inheritDirectoryFrom` wins when both are
+long gone — so `startDirectory` names one outright. A path the daemon
+itself reported goes there (`TerminalDirectory.path`, handed straight
+back); the explicit public directory link is the other caller, after
+`TerminalLink` validates and canonicalizes an existing directory. The app never
+constructs a bootstrap path. `inheritDirectoryFrom` wins when both are
 sent, and the registry checks it exactly as it checks an inherited one
 (`enterableDirectory`: absolute, a directory right now), so a path that went
 away means the home, never a failed open. That is also why the daemon

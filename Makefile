@@ -308,6 +308,11 @@ harness:
 		$$(find "$(ROOT_DIR)/Tests/OneLineText" -name '*.swift' | sort) \
 		-o "$$harness_dir/one-line" && \
 	"$$harness_dir/one-line" && \
+	xcrun --sdk macosx swiftc -swift-version 5 \
+		"$(ROOT_DIR)/iGhostVT/Backend/Shortcuts/TerminalLink.swift" \
+		"$(ROOT_DIR)/Tests/TerminalLink/main.swift" \
+		-o "$$harness_dir/terminal-link" && \
+	"$$harness_dir/terminal-link" && \
 	$(MAKE) --no-print-directory relay-harness
 
 # The relay end to end (Tests/RelayHarness): the Go server under Relay/ built

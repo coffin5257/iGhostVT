@@ -129,22 +129,25 @@ enum ShortcutBridge {
     // MARK: - URLs
 
     /// `ighostvt://session/<id>` shows a session; `ighostvt://new` opens a
-    /// tab. Anything else is ignored — the scheme exists so a Shortcut's
-    /// Open URL, a widget, or another app can reach a session, and nothing
+    /// tab, optionally in a canonical directory. The scheme lets a Shortcut's
+    /// Open URL, a widget, or another app reach a session, and nothing
     /// typed into a URL ever reaches a shell.
     static func handle(_ url: URL) {
-        guard url.scheme?.lowercased() == "ighostvt" else { return }
-        let host = url.host?.lowercased()
-        let path = url.pathComponents.filter { $0 != "/" }
+        guard let link = TerminalLink(url) else { return }
         Task { @MainActor in
-            switch host {
-            case "session":
-                guard let first = path.first, let id = UInt64(first) else { return }
+            switch link {
+            case let .session(id):
                 _ = try? await showSession(id)
-            case "new":
-                _ = try? await openNewTab()
-            default:
-                return
+            case let .new(directory):
+                if let directory {
+                    // A path from this device cannot name a directory on a
+                    // paired host. Ghost Remote has no local shell.
+                    guard !AppEdition.isRemoteOnly,
+                          let manager = try? await frontTabManager() else { return }
+                    _ = manager.newTab(.directory(TerminalDirectory(path: directory)))
+                } else {
+                    _ = try? await openNewTab()
+                }
             }
         }
     }
