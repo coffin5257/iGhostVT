@@ -194,7 +194,7 @@ extension View {
                     TabReorder.itemProvider(for: tab, in: tabManager)
                 }
                 .onDrop(
-                    of: [TabReorder.itemType],
+                    of: [TabReorder.itemType] + TabDragHover.types,
                     delegate: TabReorderSlotDelegate(tab: tab, tabManager: tabManager, pacing: pacing),
                 )
         } else {
@@ -244,20 +244,26 @@ extension View {
     }
 }
 
+/// A tab's own drag reorders; any other drag resting on the slot brings
+/// its tab forward (`TabDragHover`) and is not taken here. One delegate
+/// for both, since a second `onDrop` on the same row would compete with
+/// this one for the drag.
 private struct TabReorderSlotDelegate: DropDelegate {
     let tab: TerminalTab
     let tabManager: TabManager
     let pacing: TabReorderPacing
 
     func validateDrop(info: DropInfo) -> Bool {
-        info.hasItemsConforming(to: [TabReorder.itemType])
+        info.hasItemsConforming(to: [TabReorder.itemType]) || TabDragHover.answers(info)
     }
 
     func dropEntered(info: DropInfo) {
+        guard isReorder(info) else { return TabDragHover.enter(tab, in: tabManager) }
         moveDraggedTabHere(info, force: true)
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
+        guard isReorder(info) else { return DropProposal(operation: .cancel) }
         // The catch-up path: when a move slides this slot under a pointer
         // that never crossed its edge, no `dropEntered` fires — the update
         // stream is what still arrives, so the reorder keeps following the
@@ -266,8 +272,17 @@ private struct TabReorderSlotDelegate: DropDelegate {
         return DropProposal(operation: .move)
     }
 
-    func performDrop(info _: DropInfo) -> Bool {
-        true
+    func dropExited(info _: DropInfo) {
+        TabDragHover.leave(tab)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        TabDragHover.leave(tab)
+        return isReorder(info)
+    }
+
+    private func isReorder(_ info: DropInfo) -> Bool {
+        info.hasItemsConforming(to: [TabReorder.itemType])
     }
 
     /// Puts the dragged tab in this slot. An entered slot moves at once;

@@ -159,6 +159,7 @@ struct TabStripBar: View {
                                 onClose: { tabManager.requestClose(tab, from: .closeButton) },
                             )
                             .frame(width: width)
+                            .switchesOnDragHover(tab, in: tabManager)
                             #if targetEnvironment(macCatalyst)
                             // A touch screen's long press is the reorder,
                             // and nothing else: a menu that opened when the

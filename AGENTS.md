@@ -57,8 +57,14 @@ which launchd never sized — so a session's buffers cannot jetsam the daemon.
   for exactly this reason.
 - Depends on the **released**
   [libghostty-spm](https://github.com/Lakr233/libghostty-spm) package
-  (`upToNextMajor` from 2.2.2026101901, Ghostty 1e9e14af on Zig 0.16).
-  2.2.2026101901 keeps Shift, Option and Control on Return: on Catalyst
+  (`upToNextMajor` from 2.2.2026102101, Ghostty 1e9e14af on Zig 0.16).
+  2.2.2026102101 pastes text as the text it is when UIKit also offers it
+  as a link: on Catalyst, `UIPasteboard.string =` — the terminal's own
+  copy, an OSC 52 write — registers `public.url` beside any text that
+  starts like a scheme, percent-encoded, and the URL-first rule pasted
+  `Worker: 04` and a line of Chinese as `Worker:%2004%0A%E6…`. A URL that
+  percent-decodes to the string is now dropped; the same Swift-only binary
+  `upstream.1e9e14af5df1-3`. 2.2.2026101901 keeps Shift, Option and Control on Return: on Catalyst
   modified Return is claimed as a key command, and hardware control keys
   carry no C0/DEL text that would make the kitty encoder drop consumed
   modifiers. Shift+Enter now inserts a newline in Claude Code instead of
@@ -1573,7 +1579,19 @@ Gotchas that bit us:
   `LockableTerminalView` takes `paste(_:)`, ⌘V and the touch menu's Paste
   and hands the pasteboard's providers to `TerminalDropDelegate.deliver`;
   text stays ghostty's paste. The accessory bar's Paste key calls the
-  library's internal paste directly and still stages locally.
+  library's internal paste directly and still stages locally. UIKit
+  registers `public.url` beside any text that starts like a scheme
+  (`Worker: 04`, `C:\path`), percent-encoded since iOS 17, so a link
+  whose percent-decoded spelling is the item's own text pastes the text
+  (`TerminalDropDelegate.isReading`; the library's paste has the same rule
+  since 2.2.2026102101) — `Worker:%2004%0A…` once reached Codex that way.
+  A drag from elsewhere resting 0.4 s on a tab — a sidebar row or a strip
+  chip — brings that tab forward (`TabDragHover`), and that is all: the tab
+  takes nothing, and the drop is still made on the terminal. The sidebar
+  row's reorder delegate answers both kinds of drag, since a second
+  `onDrop` on the row would compete with it. The Mac's title-bar band,
+  which never hands a drop to the content, still reports the hover — a
+  chip there switches like a row.
 - **The Mac window's chrome is AppKit's, reached through the ObjC runtime.**
   `CatalystWindowChrome.install()` (called from `main.swift`, before any
   scene) hooks `UINSApplicationDelegate didCreateUIScene:`. The sidebar has
