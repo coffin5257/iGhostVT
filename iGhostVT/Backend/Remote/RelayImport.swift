@@ -119,9 +119,7 @@ enum RelayImport {
             guard pending.value != nil else { return }
             let interface = window.interface
             guard !interface.showsSettingsSheet else { return }
-            if interface.showsSwitcher {
-                interface.showsSwitcher = false
-            }
+            interface.closeSwitcher()
             guard window.rootViewController?.presentedViewController == nil else {
                 guard attempt < 20 else { return }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {

@@ -118,7 +118,21 @@ struct RootView: View {
         // The Mac's windows: only the key one's terminal may take the
         // keyboard, so a window gets it as it comes to the front.
         .onReceive(interface.didBecomeKey) { refocus() }
-        .onAppear { interface.focusActiveTerminal = focusActiveTerminalForKeyPress }
+        .onAppear {
+            interface.focusActiveTerminal = focusActiveTerminalForKeyPress
+            // The overview is a panel this view does not present: it takes
+            // the pictures and the keyboard on its way in, and gives the
+            // keyboard back on its way out (`WindowInterfaceState`).
+            interface.willShowSwitcher = {
+                keyboardVisibleBeforeSwitcher = keyboard.isVisible
+                tabManager.capturePreviews()
+            }
+            interface.didHideSwitcher = {
+                refocusAfterTabSwitch(
+                    softwareKeyboardWasVisible: keyboardVisibleBeforeSwitcher,
+                )
+            }
+        }
         .onChange(of: agent.status) { _ in refocus() }
         .onChange(of: tabManager.closeRequest != nil) { _ in refocus() }
         .onChange(of: tabManager.clipboardRequests.isEmpty) { _ in refocus() }
@@ -134,28 +148,10 @@ struct RootView: View {
                 KeyboardBarStore.shared.apply(to: tab.terminal)
             }
         }
-        // The cards' pictures are taken here, on the flip that opens the
-        // cover, whichever control flipped it (the bar's button, the menu
-        // command): the panes are still on screen at this point, and a
-        // capture from inside the cover would be too late for any card the
-        // grid lays out after the transition has removed them.
-        .onChange(of: interface.showsSwitcher) { shows in
-            if shows {
-                keyboardVisibleBeforeSwitcher = keyboard.isVisible
-                tabManager.capturePreviews()
-            }
-        }
-        .fullScreenCover(isPresented: $interface.showsSwitcher, onDismiss: {
-            refocusAfterTabSwitch(
-                softwareKeyboardWasVisible: keyboardVisibleBeforeSwitcher,
-            )
-        }) {
-            TabSwitcherView(tabManager: tabManager)
-        }
         .settingsPresentation(isPresented: $interface.showsSettingsSheet, onDismiss: refocus)
         // One copy for the whole window: each confirmation presents as an
         // `AlertViewController` on the front-most context, so it lands above
-        // the switcher's cover too.
+        // the switcher's panel too.
         .closeTabConfirmation(tabManager)
         .clipboardConfirmation(tabManager)
         .relocationPrompt(MacLaunchAgent.shared)
@@ -201,7 +197,7 @@ struct RootView: View {
                 BottomBar(
                     tabManager: tabManager,
                     onShowSettings: { interface.showsSettingsSheet = true },
-                    onShowSwitcher: { interface.showsSwitcher = true },
+                    onShowSwitcher: { interface.openSwitcher() },
                 )
                 .opacity(keyboard.isVisible ? 0 : 1)
                 .allowsHitTesting(!keyboard.isVisible)
@@ -305,7 +301,7 @@ struct RootView: View {
     /// from the field being typed in — a device name could not be edited.
     /// Each presentation hands focus back as it is dismissed.
     private var isCoveredByPresentation: Bool {
-        interface.showsSettingsSheet || interface.showsSwitcher
+        interface.showsSettingsSheet || interface.isSwitcherShowing
     }
 
     private var focusableActiveTab: TerminalTab? {

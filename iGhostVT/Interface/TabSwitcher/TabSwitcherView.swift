@@ -5,7 +5,10 @@ import UIKit
 /// surface as it was last seen (`TerminalTab.previewImage`).
 struct TabSwitcherView: View {
     @ObservedObject var tabManager: TabManager
-    @Environment(\.dismiss) private var dismiss
+    /// Closes the overview: the panel it is hosted in, from its presenter. A
+    /// `dismiss` would dismiss whatever SwiftUI believes it is presented by,
+    /// and UIKit is the one presenting this.
+    let onClose: () -> Void
     @ObservedObject private var theme = AppTheme.shared
     @Environment(\.colorScheme) private var colorScheme
     @State private var showsSettings = false
@@ -39,7 +42,7 @@ struct TabSwitcherView: View {
                             isActive: tab.id == tabManager.activeTabID,
                             onSelect: {
                                 tabManager.activeTabID = tab.id
-                                dismiss()
+                                onClose()
                             },
                             onClose: { tabManager.requestClose(tab, from: .closeButton) },
                         )
@@ -81,7 +84,7 @@ struct TabSwitcherView: View {
     }
 
     private var newTabCard: some View {
-        NewTabMenu(tabManager: tabManager, onOpen: { dismiss() }) {
+        NewTabMenu(tabManager: tabManager, onOpen: onClose) {
             RoundedRectangle(cornerRadius: DS.Radius.l, style: .continuous)
                 .strokeBorder(
                     theme.hairline(for: colorScheme),
@@ -132,7 +135,7 @@ struct TabSwitcherView: View {
                     Spacer(minLength: 8)
                 }
 
-                Button(action: { dismiss() }) {
+                Button(action: onClose) {
                     Text("Done")
                         .font(DS.Font.controlEmphasis)
                         .padding(.horizontal, DS.Padding.l)

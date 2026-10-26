@@ -7,11 +7,19 @@ import Combine
 import SwiftUI
 import UIKit
 
-/// Interface state a menu command has to reach: the two presentations
-/// `RootView` owns. Per window, like the `TabManager` — ⇧⌘\ in one window
-/// must not open the switcher in another.
+/// Interface state a menu command has to reach: the two presentations the
+/// window has. Per window, like the `TabManager` — ⇧⌘\ in one window must
+/// not open the switcher in another.
+///
+/// Main-actor bound: every caller is a window, a scene delegate or a view,
+/// and the overview is presented a turn or a transition after the tap that
+/// asked for it.
+@MainActor
 final class WindowInterfaceState: ObservableObject {
-    @Published var showsSwitcher = false
+    /// Whether the tab overview is on screen. It follows the panel that is
+    /// presenting it (`openSwitcher`): there is no request to go stale,
+    /// because nothing but a panel on screen puts it up.
+    @Published private(set) var showsSwitcher = false
     @Published var showsSettingsSheet = false
     /// The window just became key — on the Mac, came to the front — and its
     /// terminal may take the keyboard again. Sent on the Mac only.
@@ -21,6 +29,16 @@ final class WindowInterfaceState: ObservableObject {
     /// view and the view holds this state, so `SceneDelegate` clears it as
     /// the window goes.
     var focusActiveTerminal: (() -> UIResponder?)?
+    /// The overview is about to cover the panes: take the cards' pictures and
+    /// remember whether the keyboard was up, while both are still on screen.
+    var willShowSwitcher: (() -> Void)?
+    /// The overview has gone, and the keyboard it took with it may come back.
+    var didHideSwitcher: (() -> Void)?
+
+    /// The window the overview is presented in, and the tabs it lists; both
+    /// set by `TerminalWindow`.
+    weak var window: UIWindow?
+    weak var tabManager: TabManager?
 
     /// Settings, opened on Remote Access: where Ghost Remote sends a new
     /// tab with no paired device to open on.
@@ -28,6 +46,116 @@ final class WindowInterfaceState: ObservableObject {
     func showRemoteAccess() {
         SettingsSheet.remoteAccessRequest.send(true)
         showsSettingsSheet = true
+    }
+
+    // MARK: - The tab overview
+
+    /// The panel, from the request until it leaves the screen.
+    private var switcherPanel: TabSwitcherPanel?
+    /// The pending "has it taken the window yet" check.
+    private var switcherAttempt: DispatchWorkItem?
+    /// How long a present is retried before the overview is given up. A menu
+    /// on its way out takes about a third of a second; this is six of them.
+    private static let switcherPresentLimit: TimeInterval = 2
+
+    /// The overview is up, or on its way in — what keeps `RootView` from
+    /// handing the terminal focus while the panel covers it.
+    var isSwitcherShowing: Bool {
+        showsSwitcher || switcherPanel != nil
+    }
+
+    /// Opens the overview, from the bar's button or from ⇧⌘\.
+    ///
+    /// SwiftUI's `fullScreenCover` presents on the *change* to true and keeps
+    /// the flag up when UIKit refuses the request. UIKit refuses one made
+    /// while something else is being presented or dismissed, and the bar's
+    /// ⋯ menu closes over the same window: tapping the overview's button as
+    /// it went left the flag up with nothing on screen, and every later tap
+    /// wrote true to a value already true — the button dead until the app
+    /// was restarted.
+    ///
+    /// Presented here against the window instead. A present the window will
+    /// not take is not recorded as one that landed: the panel says whether
+    /// it is on screen, and the request is made again until it is.
+    func openSwitcher() {
+        guard switcherPanel == nil else { return }
+        guard let window, let host = window.rootViewController, let tabManager else { return }
+        let panel = TabSwitcherPanel(tabManager: tabManager) { [weak self] in
+            self?.closeSwitcher()
+        }
+        panel.onAppear = { [weak self] in
+            self?.showsSwitcher = true
+        }
+        panel.onDisappear = { [weak self] in
+            self?.switcherDidDisappear()
+        }
+        switcherPanel = panel
+        willShowSwitcher?()
+        presentSwitcher(panel, on: host, until: CFAbsoluteTimeGetCurrent() + Self.switcherPresentLimit)
+    }
+
+    /// ⇧⌘\ — the one control that both opens and closes the overview, as the
+    /// menu item has always been.
+    func toggleSwitcher() {
+        if switcherPanel != nil {
+            closeSwitcher()
+        } else {
+            openSwitcher()
+        }
+    }
+
+    /// Takes the overview down — Done, a card, ⇧⌘\, or a relay file that
+    /// needs the window and cannot have the panel.
+    func closeSwitcher() {
+        switcherAttempt?.cancel()
+        switcherAttempt = nil
+        guard let panel = switcherPanel else { return }
+        guard panel.presentingViewController != nil else {
+            // It never reached the screen; forget it so the next tap can ask.
+            switcherPanel = nil
+            return
+        }
+        guard !panel.isBeingDismissed else { return }
+        panel.dismiss(animated: true)
+    }
+
+    private func switcherDidDisappear() {
+        switcherAttempt?.cancel()
+        switcherAttempt = nil
+        switcherPanel = nil
+        showsSwitcher = false
+        didHideSwitcher?()
+    }
+
+    /// Presents the panel, or looks again in a moment.
+    ///
+    /// `present` fails without an error while another presentation is in
+    /// progress, and the panel's `presentingViewController` is what says it
+    /// took. What is over the window when the tap arrives is not ours — the
+    /// bar is reachable only where nothing covers it, so it is a menu on its
+    /// way out — and the present is held back rather than made over it.
+    private func presentSwitcher(
+        _ panel: TabSwitcherPanel,
+        on host: UIViewController,
+        until deadline: CFAbsoluteTime,
+    ) {
+        guard switcherPanel === panel, panel.presentingViewController == nil else { return }
+        guard CFAbsoluteTimeGetCurrent() < deadline else {
+            AppLog.warning(.tabs, "the tab overview was not presented: the window stayed busy")
+            switcherPanel = nil
+            return
+        }
+        if host.presentedViewController == nil {
+            host.present(panel, animated: true)
+        }
+        guard panel.presentingViewController == nil else { return }
+        let attempt = DispatchWorkItem { [weak self, weak panel] in
+            guard let self, let panel else { return }
+            presentSwitcher(panel, on: host, until: deadline)
+        }
+        switcherAttempt?.cancel()
+        switcherAttempt = attempt
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: attempt)
     }
 }
 
@@ -59,6 +187,10 @@ final class TerminalWindow: UIWindow, AppCommandResponder {
         self.tabManager = tabManager
         self.interface = interface
         super.init(windowScene: windowScene)
+        // The overview is presented by the interface state itself, against
+        // this window (`WindowInterfaceState.openSwitcher`).
+        interface.window = self
+        interface.tabManager = tabManager
     }
 
     @available(*, unavailable)
@@ -329,7 +461,7 @@ final class TerminalWindow: UIWindow, AppCommandResponder {
     }
 
     func toggleTabSwitcher(_: Any?) {
-        interface.showsSwitcher.toggle()
+        interface.toggleSwitcher()
     }
 
     /// Ghostty's own font actions on the active surface — the same ones the
