@@ -1870,6 +1870,20 @@ Gotchas that bit us:
   class `AppleParavirtDeviceUserClient`; keep it in that allowlist or the
   daemon and CLI will work while the app never creates a surface or sends an
   `openSession` request.
+- **The app opens its own network; nothing else will.** CoreTelephony's
+  per-app data policy (Wireless Data; WLAN & Cellular on a device sold in
+  China, where it holds Wi-Fi too) binds apps by bundle id, never the
+  daemon, its helpers or a shell, and no prompt ever asks about an app a
+  package manager installed — so where the system holds it denied, the app
+  dials nothing (a paired device direct or through the relay, Check for
+  Updates) while this device's own host side and `ighostvt-cli --host` work
+  as ever. At launch the app reads its policy and, unless Wi-Fi and
+  cellular are both allowed, allows both (`NetworkAccess`, off the main
+  thread; the journal says what it found), as Apelin and Irisin do and as
+  icli's `app network repair` does for another app, with
+  `com.apple.CommCenter.fine-grained` `spi` and `data-allowed-write`, which
+  the packager requires. Never on the Mac or in Ghost Remote: a sideloaded
+  app gets the system's own question, and its CI refuses any entitlement.
 
 ## RootHide runtime dependency policy
 

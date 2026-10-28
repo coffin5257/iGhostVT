@@ -149,6 +149,16 @@
 	<true/>
 	<key>com.apple.private.security.storage.iCloudDrive</key>
 	<true/>
+	<!-- The app's own Wi-Fi and cellular data policy, read and opened at
+	     launch (NetworkAccess.swift): a device sold in China can hold it
+	     denied for an app no prompt ever asked about, and every link the
+	     app dials — a paired device, the relay — then fails as offline.
+	     Irisin and Apelin carry the same two values for the same reason. -->
+	<key>com.apple.CommCenter.fine-grained</key>
+	<array>
+		<string>spi</string>
+		<string>data-allowed-write</string>
+	</array>
 	<!-- Remote access: the name the owner gave this device, which it
 	     introduces itself by when it pairs. Without it UIDevice.name is
 	     only the model ("iPad"), and every device looks the same. -->

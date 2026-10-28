@@ -299,6 +299,16 @@ done
     echo "error: app is missing the daemon mach lookup entitlement" >&2
     exit 65
 }
+# The app opens its own data policy at launch (NetworkAccess.swift); without
+# both values CoreTelephony refuses, and the app stays offline wherever the
+# system holds that policy denied.
+for value in spi data-allowed-write; do
+    /usr/libexec/PlistBuddy -c 'Print :com.apple.CommCenter.fine-grained' "$app_signed_entitlements" 2>/dev/null \
+        | grep -Eq "^[[:space:]]*$value\$" || {
+        echo "error: app is missing com.apple.CommCenter.fine-grained $value" >&2
+        exit 65
+    }
+done
 
 # Every `com.apple.private.security.storage.<Class>` the daemon declares. A
 # data vault refuses even root without its class, as EPERM, so a build that

@@ -28,6 +28,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // Surface lifecycle and sizing, so a surface that never comes up on
         // device says where it stopped. Input/output categories stay off —
         // they would log keystrokes.
+        // This app's Wi-Fi and cellular data, which a device sold in China
+        // can hold denied for an app no prompt ever asked about.
+        NetworkAccess.start()
         // Remote tabs try again the moment the network comes back.
         NetworkPathWatcher.shared.start()
         // A remote tab's links stay up for a while after the app leaves.
